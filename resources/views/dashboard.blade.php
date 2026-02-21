@@ -1,0 +1,164 @@
+{{-- resources/views/dashboard.blade.php --}}
+<x-app-layout>
+    <x-slot name="header" >
+        <h2 class="h5 fw-semibold mb-0" style="color: var(--text-main)">Dashboard</h2>
+    </x-slot>
+
+    <div class="container-fluid py-4">
+        <div class="row g-4">
+
+            {{-- Левая часть --}}
+            <div class="col-lg-8">
+                <div class="row g-3">
+
+                    @role('super_admin')
+                    <div class="col-md-6">
+                        <a href="{{ route('dashboard') }}" class="card border-0 text-decoration-none h-100">
+                            <div class="card-body text-center py-5">
+                                <i class="bi bi-shield-check fs-1 text-danger"></i>
+                                <p class="mt-3 mb-0 fw-semibold">Панель администратора</p>
+                            </div>
+                        </a>
+                    </div>
+                    @endrole
+
+                    @role('hr_manager|hr_staff')
+                    <div class="col-md-6">
+                        <a href="{{ route('hr.dashboard') }}" class="card border-0 text-decoration-none h-100">
+                            <div class="card-body text-center py-5">
+                                <i class="bi bi-people-fill fs-1 text-primary"></i>
+                                <p class="mt-3 mb-0 fw-semibold">HR Панель</p>
+                            </div>
+                        </a>
+                    </div>
+                    @endrole
+
+                    <div class="col-md-6">
+                        <a href="#" class="card border-0 text-decoration-none h-100">
+                            <div class="card-body text-center py-5">
+                                <i class="bi bi-file-earmark-plus fs-1 text-success"></i>
+                                <p class="mt-3 mb-0 fw-semibold">Мои заявки</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    {{-- Список заявок --}}
+                    <div class="col-12">
+                        <div class="card border-0">
+                            <div class="card-header fw-semibold">
+                                <i class="bi bi-list-ul me-2"></i>Мои заявки
+                            </div>
+                            <div class="card-body" style="min-height: 300px;">
+                                {{-- @if($applications->isEmpty()) --}}
+                                <div class="d-flex flex-column align-items-center justify-content-center h-100 py-5" style="min-height: 250px;">
+                                    <i class="bi bi-inbox text-muted mb-3" style="font-size: 3.5rem;"></i>
+                                    <p class="text-muted mb-0 fs-5">Заявок нет</p>
+                                    <small class="text-muted">Ваши заявки появятся здесь</small>
+                                </div>
+                                {{-- @else --}}
+                                {{-- список заявок --}}
+                                {{-- @endif --}}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- Правая часть: личные данные --}}
+            <div class="col-lg-4">
+                <div class="card border-0 h-100">
+                    <div class="card-header fw-semibold">
+                        <i class="bi bi-person-circle me-2"></i>Личные данные
+                    </div>
+                    <div class="card-body d-flex flex-column gap-3">
+
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle p-3 flex-shrink-0 d-flex align-items-center justify-content-center"
+                                 style="background: rgba(96,165,250,0.15); width: 56px; height: 56px;">
+                                <i class="bi bi-person-fill fs-4 text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-semibold">{{ auth()->user()->name }}</h6>
+                                <small class="text-muted">{{ auth()->user()->email }}</small>
+                            </div>
+                        </div>
+
+                        <hr class="my-1">
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Роль</span>
+                            <span class="badge bg-secondary">{{ auth()->user()->display_role }}</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Код сотрудника</span>
+                            <span class="fw-semibold small">{{ auth()->user()->employee_code ?? '—' }}</span>
+                        </div>
+
+                        @if(auth()->user()->position)
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Должность</span>
+                            <span class="fw-semibold small text-end" style="max-width: 60%">
+                                {{ auth()->user()->position->name }}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Категория / Разряд</span>
+                            <span class="badge bg-info text-dark">
+                                Кат. {{ auth()->user()->position_category }},
+                                {{ auth()->user()->position_grade }}-й разряд
+                            </span>
+                        </div>
+                        @endif
+
+                        @if(auth()->user()->branch)
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Филиал</span>
+                            <span class="fw-semibold small">{{ auth()->user()->branch->name }}</span>
+                        </div>
+                        @endif
+
+                        @if(auth()->user()->department)
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Отдел</span>
+                            <span class="fw-semibold small">{{ auth()->user()->department->name }}</span>
+                        </div>
+                        @endif
+
+                        @if(auth()->user()->subdivision)
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Подразделение</span>
+                            <span class="fw-semibold small">{{ auth()->user()->subdivision->name }}</span>
+                        </div>
+                        @endif
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Статус</span>
+                            @if(auth()->user()->is_active)
+                                <span class="badge bg-success">Активен</span>
+                            @else
+                                <span class="badge bg-danger">Неактивен</span>
+                            @endif
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Последний вход</span>
+                            <span class="small text-muted">
+                                {{ auth()->user()->last_login_at?->format('d.m.Y H:i') ?? '—' }}
+                            </span>
+                        </div>
+
+                        <hr class="my-1">
+
+                        <a href="#" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-pencil-square me-1"></i>Редактировать профиль
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</x-app-layout>
