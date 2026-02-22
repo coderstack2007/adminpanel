@@ -19,7 +19,9 @@
         .btn-outline-primary { color: #60a5fa; border-color: #60a5fa; }
         .btn-outline-primary:hover { background-color: #60a5fa; color: #111827; }
         a.card:hover { border-color: #4f8ef7 !important; transition: border-color 0.2s; }
+        
     </style>
+    @stack('styles')
 </head>
 <body>
     <div style="min-height: 100vh; background-color: rgb(17,24,39);">
@@ -31,6 +33,7 @@
         </div>
         @endisset
 
+        
         <main>
             {{ $slot }}
         </main>

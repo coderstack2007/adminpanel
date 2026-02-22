@@ -11,17 +11,20 @@
             <div class="col-lg-8">
                 <div class="row g-3">
 
+                <!-- Филиалы -->
                     @role('super_admin')
-                    <div class="col-md-6">
-                        <a href="{{ route('dashboard') }}" class="card border-0 text-decoration-none h-100">
-                            <div class="card-body text-center py-5">
-                                <i class="bi bi-shield-check fs-1 text-danger"></i>
-                                <p class="mt-3 mb-0 fw-semibold">Панель администратора</p>
-                            </div>
-                        </a>
-                    </div>
+                        <div class="col-md-6">
+                            <a href="{{ route('supervisor.branches.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+                                <div class="card-body text-center py-4">
+                                    <i class="bi bi-building fs-1 text-warning"></i>
+                                    <p class="mt-2 mb-0 fw-semibold">Филиалы</p>
+                                    <small class="text-muted">Управление филиалами</small>
+                                </div>
+                            </a>
+                        </div>
                     @endrole
 
+                <!-- HR Панель -->
                     @role('hr_manager|hr_staff')
                     <div class="col-md-6">
                         <a href="{{ route('hr.dashboard') }}" class="card border-0 text-decoration-none h-100">
@@ -33,6 +36,7 @@
                     </div>
                     @endrole
 
+                <!--  Мои заявки -->
                     <div class="col-md-6">
                         <a href="#" class="card border-0 text-decoration-none h-100">
                             <div class="card-body text-center py-5">
