@@ -8,13 +8,20 @@ use Symfony\Component\HttpFoundation\Response;
 
 class SuperAdminOnly
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
+        $user = $request->user();
+
+        // Не авторизован — на логин
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Проверяем роль super_admin
+        if (!$user->hasRole('super_admin')) {
+            abort(403, 'Доступ запрещён.');
+        }
+
         return $next($request);
     }
 }

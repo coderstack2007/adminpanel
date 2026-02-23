@@ -7,22 +7,18 @@ use App\Http\Controllers\PositionController;
 use Illuminate\Support\Facades\Route;
 
 
-
-
 Route::prefix('supervisor')
     ->name('supervisor.')
-    ->middleware(['auth', 'role:super_admin'])
+    ->middleware(['auth', 'super_admin_only']) // ← заменяем role:super_admin
     ->group(function () {
 
         Route::get('/dashboard', fn() => view('supervisor.dashboard'))
             ->name('dashboard');
 
-        // Branches
         Route::resource('branches', BranchController::class)
             ->only(['index', 'store', 'destroy'])
             ->names('branches');
 
-        // Departments → вложен в branch
         Route::prefix('branches/{branch}')->name('branches.')->group(function () {
             Route::get('departments', [DepartmentController::class, 'index'])
                 ->name('departments.index');
@@ -32,7 +28,6 @@ Route::prefix('supervisor')
                 ->name('departments.destroy');
         });
 
-        // Subdivisions → вложен в department
         Route::prefix('departments/{department}')->name('departments.')->group(function () {
             Route::get('subdivisions', [SubdivisionController::class, 'index'])
                 ->name('subdivisions.index');
@@ -42,7 +37,6 @@ Route::prefix('supervisor')
                 ->name('subdivisions.destroy');
         });
 
-        // Positions → вложен в subdivision
         Route::prefix('subdivisions/{subdivision}')->name('subdivisions.')->group(function () {
             Route::get('positions', [PositionController::class, 'index'])
                 ->name('positions.index');

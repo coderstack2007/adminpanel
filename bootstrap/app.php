@@ -10,13 +10,14 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+   // bootstrap/app.php
     ->withMiddleware(function (Middleware $middleware) {
 
-        // ← Добавь эти строки
         $middleware->alias([
-            'role'       => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role'             => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission'       => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            'super_admin_only' => \App\Http\Middleware\SuperAdminOnly::class, // ← добавь
         ]);
 
     })
