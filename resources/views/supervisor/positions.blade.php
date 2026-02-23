@@ -134,98 +134,153 @@
                             <i class="bi bi-plus-circle me-2 text-primary"></i>Добавить должность
                         </h6>
                     </div>
-                    <div class="card-body">
-                        <form
-                            method="POST"
-                            action="{{ route('supervisor.subdivisions.positions.store', $subdivision) }}"
-                        >
-                            @csrf
-
-                            <div class="mb-3">
-                                <label for="name" class="form-label fw-semibold">
-                                    Название <span class="text-danger">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    class="form-control @error('name') is-invalid @enderror"
-                                    id="name"
-                                    name="name"
-                                    value="{{ old('name') }}"
-                                    placeholder="Главный бухгалтер"
-                                    required
+                        <div class="card-body">
+                                <form
+                                    method="POST"
+                                    action="{{ route('supervisor.subdivisions.positions.store', $subdivision) }}"
                                 >
-                                @error('name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                                    @csrf
 
-                            <div class="mb-3">
-                                <label for="category" class="form-label fw-semibold">
-                                    Категория <span class="text-danger">*</span>
-                                </label>
-                                <select
-                                    class="form-select @error('category') is-invalid @enderror"
-                                    id="category"
-                                    name="category"
-                                    required
-                                >
-                                    <option value="">— Выберите —</option>
-                                    @foreach(['A', 'B', 'C', 'D'] as $cat)
-                                        <option value="{{ $cat }}" {{ old('category') === $cat ? 'selected' : '' }}>
-                                            Категория {{ $cat }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('category')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                                    {{-- Должность --}}
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label fw-semibold">
+                                            Название должности <span class="text-danger">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            class="form-control @error('name') is-invalid @enderror"
+                                            id="name"
+                                            name="name"
+                                            value="{{ old('name') }}"
+                                            placeholder="Главный бухгалтер"
+                                            required
+                                        >
+                                        @error('name')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
 
-                            <div class="mb-3">
-                                <label for="grade" class="form-label fw-semibold">
-                                    Разряд <span class="text-danger">*</span>
-                                </label>
-                                <select
-                                    class="form-select @error('grade') is-invalid @enderror"
-                                    id="grade"
-                                    name="grade"
-                                    required
-                                >
-                                    <option value="">— Выберите —</option>
-                                    @foreach(range(1, 5) as $g)
-                                        <option value="{{ $g }}" {{ old('grade') == $g ? 'selected' : '' }}>
-                                            {{ $g }}-й разряд
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('grade')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">
+                                            Категория <span class="text-danger">*</span>
+                                        </label>
+                                        <select class="form-select @error('category') is-invalid @enderror" name="category" required>
+                                            <option value="">— Выберите —</option>
+                                            @foreach(['A', 'B', 'C', 'D'] as $cat)
+                                                <option value="{{ $cat }}" {{ old('category') === $cat ? 'selected' : '' }}>
+                                                    Категория {{ $cat }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('category')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
 
-                            <div class="mb-4">
-                                <div class="form-check form-switch">
-                                    <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        id="is_vacant"
-                                        name="is_vacant"
-                                        {{ old('is_vacant') ? 'checked' : '' }}
-                                    >
-                                    <label class="form-check-label" for="is_vacant" style="color:#d1d5db;">
-                                        Вакантная должность
-                                    </label>
-                                </div>
-                                <div class="form-text">Отметьте если должность открыта для найма</div>
-                            </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">
+                                            Разряд <span class="text-danger">*</span>
+                                        </label>
+                                        <select class="form-select @error('grade') is-invalid @enderror" name="grade" required>
+                                            <option value="">— Выберите —</option>
+                                            @foreach(range(1, 5) as $g)
+                                                <option value="{{ $g }}" {{ old('grade') == $g ? 'selected' : '' }}>
+                                                    {{ $g }}-й разряд
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('grade')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
 
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-plus-lg me-1"></i>Создать должность
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                id="is_vacant"
+                                                name="is_vacant"
+                                                {{ old('is_vacant') ? 'checked' : '' }}
+                                            >
+                                            <label class="form-check-label" for="is_vacant" style="color:#d1d5db;">
+                                                Вакантная должность
+                                            </label>
+                                        </div>
+                                        <div class="form-text">Отметьте если должность открыта для найма</div>
+                                    </div>
+
+                                    {{-- Разделитель --}}
+                                    <hr style="border-color:rgba(255,255,255,0.1); margin: 1.2rem 0;">
+
+                                    <p class="form-text mb-3">
+                                        <i class="bi bi-person-plus me-1 text-primary"></i>
+                                        <strong style="color:#d1d5db;">Сотрудник</strong> — заполните если нужно сразу назначить
+                                    </p>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">ФИО сотрудника</label>
+                                        <input
+                                            type="text"
+                                            class="form-control @error('user_name') is-invalid @enderror"
+                                            name="user_name"
+                                            value="{{ old('user_name') }}"
+                                            placeholder="Иванов Иван Иванович"
+                                        >
+                                        @error('user_name')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Email</label>
+                                        <input
+                                            type="email"
+                                            class="form-control @error('email') is-invalid @enderror"
+                                            name="email"
+                                            value="{{ old('email') }}"
+                                            placeholder="user@company.uz"
+                                        >
+                                        @error('email')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Пароль</label>
+                                        <input
+                                            type="text"
+                                            class="form-control @error('password') is-invalid @enderror"
+                                            name="password"
+                                            placeholder="Минимум 4 символа"
+                                        >
+                                        @error('password')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold">Роль</label>
+                                        <select class="form-select @error('role') is-invalid @enderror" name="role">
+                                            <option value="">— Без роли —</option>
+                                            @foreach($roles as $role)
+                                                <option value="{{ $role->name }}" {{ old('role') === $role->name ? 'selected' : '' }}>
+                                                    {{ $role->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('role')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-plus-lg me-1"></i>Создать
+                                        </button>
+                                    </div>
+                                </form>
+                        </div>
                 </div>
             </div>
 
