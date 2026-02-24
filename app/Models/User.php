@@ -20,7 +20,6 @@ class User extends Authenticatable
         'department_id',
         'subdivision_id',
         'position_id',
-        'is_active',
         'last_login_at',
     ];
 
@@ -29,7 +28,6 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'last_login_at'     => 'datetime',
-        'is_active'         => 'boolean',
         'password'          => 'hashed',
     ];
 

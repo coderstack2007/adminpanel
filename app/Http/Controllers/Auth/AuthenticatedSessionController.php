@@ -22,13 +22,6 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        // Блокировка деактивированных пользователей
-        if (!$user->is_active) {
-            Auth::logout();
-            return back()->withErrors([
-                'email' => 'Ваш аккаунт деактивирован. Обратитесь к администратору.',
-            ]);
-        }
 
         $request->session()->regenerate();
 
@@ -53,9 +46,8 @@ class AuthenticatedSessionController extends Controller
         return match(true) {
             $user->hasRole('super_admin')     => route('dashboard'),
             $user->hasRole('hr_manager')      => route('dashboard'),
-            $user->hasRole('hr_staff')        => route('dashboard'),
+            $user->hasRole('employee')       => route('dashboard'),
             $user->hasRole('department_head') => route('dashboard'),
-            $user->hasRole('requester')       => route('dashboard'),
             default                           => route('dashboard'),
         };
     }

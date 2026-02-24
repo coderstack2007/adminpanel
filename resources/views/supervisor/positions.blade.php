@@ -194,21 +194,7 @@
                                         @enderror
                                     </div>
 
-                                    <div class="mb-3">
-                                        <div class="form-check form-switch">
-                                            <input
-                                                class="form-check-input"
-                                                type="checkbox"
-                                                id="is_vacant"
-                                                name="is_vacant"
-                                                {{ old('is_vacant') ? 'checked' : '' }}
-                                            >
-                                            <label class="form-check-label" for="is_vacant" style="color:#d1d5db;">
-                                                Вакантная должность
-                                            </label>
-                                        </div>
-                                        <div class="form-text">Отметьте если должность открыта для найма</div>
-                                    </div>
+                       
 
                                     {{-- Разделитель --}}
                                     <hr style="border-color:rgba(255,255,255,0.1); margin: 1.2rem 0;">
@@ -306,10 +292,9 @@
                                         <tr>
                                             <th class="ps-3">#</th>
                                             <th>Название</th>
+                                            <th>Сотрудник</th>
                                             <th>Категория</th>
                                             <th>Разряд</th>
-                                            <th>Вакансия</th>
-                                            <th>Статус</th>
                                             <th class="text-end pe-3">Действия</th>
                                         </tr>
                                     </thead>
@@ -317,36 +302,25 @@
                                         @foreach($positions as $position)
                                         <tr>
                                             <td class="ps-3 text-muted small">{{ $loop->iteration }}</td>
-                                            <td style="color:#fff" class="fw-semibold">{{ $position->name }}</td>
+                                            <td class="fw-semibold" style="color:#fff">{{ $position->name }}</td>
+                                            <td>
+                                                @if($position->users->isNotEmpty())
+                                                    @foreach($position->users as $emp)
+                                                        <div class="small" style="color:#f9fafb">
+                                                            <i class="bi bi-person-fill me-1 text-muted"></i>{{ $emp->name }}
+                                                        </div>
+                                                    @endforeach
+                                                @else
+                                                    <span class="text-muted small">—</span>
+                                                @endif
+                                            </td>
                                             <td>
                                                 <span class="badge badge-cat-{{ $position->category }} text-white">
                                                     Кат. {{ $position->category }}
                                                 </span>
                                             </td>
                                             <td>
-                                                <span class="badge bg-secondary">
-                                                    {{ $position->grade }}-й разряд
-                                                </span>
-                                            </td>
-                                            <td>
-                                                @if($position->is_vacant)
-                                                    <span class="badge bg-warning text-dark">
-                                                        <i class="bi bi-door-open me-1"></i>Вакантна
-                                                    </span>
-                                                @else
-                                                    <span class="badge bg-secondary">Занята</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if($position->is_active)
-                                                    <span class="badge bg-success-subtle text-success border border-success-subtle">
-                                                        Активна
-                                                    </span>
-                                                @else
-                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
-                                                        Неактивна
-                                                    </span>
-                                                @endif
+                                                <span class="badge bg-secondary">{{ $position->grade }}-й разряд</span>
                                             </td>
                                             <td class="text-end pe-3">
                                                 <form
@@ -356,11 +330,7 @@
                                                 >
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button
-                                                        type="submit"
-                                                        class="btn btn-sm btn-outline-danger"
-                                                        title="Удалить"
-                                                    >
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Удалить">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </form>

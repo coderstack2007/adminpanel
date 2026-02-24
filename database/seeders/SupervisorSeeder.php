@@ -8,65 +8,85 @@ use App\Models\Position;
 use App\Models\Subdivision;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class SupervisorSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Организационная структура
-        $branch = Branch::create([
-            'name'      => 'Главный офис',
-            'code'      => 'HQ',
-            'address'   => 'г. Ташкент, ул. Примерная 1',
-            'is_active' => true,
-        ]);
+        DB::transaction(function () {
 
-        $department = Department::create([
-            'branch_id' => $branch->id,
-            'name'      => 'Административный отдел',
-            'code'      => 'ADMIN',
-            'is_active' => true,
-        ]);
+            $branch = Branch::firstOrCreate(
+                ['code' => 'HQ'],
+                [
+                    'name'      => 'Главный офис',
+                    'address'   => 'г. Ташкент, ул. Примерная 1',
+                    'is_active' => true,
+                ]
+            );
 
-        $subdivision = Subdivision::create([
-            'department_id' => $department->id,
-            'name'          => 'Управление',
-            'code'          => 'MGMT',
-            'is_active'     => true,
-        ]);
+            $department = Department::firstOrCreate(
+                ['code' => 'ADMIN', 'branch_id' => $branch->id],
+                [
+                    'name'      => 'Административный отдел',
+                    'is_active' => true,
+                ]
+            );
 
-        $position = Position::create([
-            'subdivision_id' => $subdivision->id,
-            'name'           => 'Supervisor / Super Administrator',
-            'category'       => 'A',
-            'grade'          => 5,
-            'is_vacant'      => false,
-            'is_active'      => true,
-        ]);
+            $subdivision = Subdivision::firstOrCreate(
+                ['code' => 'MGMT', 'department_id' => $department->id],
+                [
+                    'name'      => 'Управление',
+                    'is_active' => true,
+                ]
+            );
 
-        // 2. Пользователь
-        $user = User::create([
-            'name'            => 'Supervisor',
-            'email'           => 'supervisor@hr.uz',
-            'password'        => Hash::make('1234'),
-            'employee_code'   => 'EMP-0001',
-            'branch_id'       => $branch->id,
-            'department_id'   => $department->id,
-            'subdivision_id'  => $subdivision->id,
-            'position_id'     => $position->id,
-            'is_active'       => true,
-        ]);
+            $position = Position::firstOrCreate(
+                [
+                    'name'           => 'Supervisor / Super Administrator',
+                    'subdivision_id' => $subdivision->id,
+                ],
+                [
+                    'category'  => 'A',
+                    'grade'     => 5,
+            
+                ]
+            );
 
-        // 3. Назначаем роль (Spatie)
+            $user = User::firstOrCreate(
+                ['email' => 'supervisor@hr.uz'],
+                [
+                    'name'           => 'Supervisor',
+                    'password'       => Hash::make('1234'),
+                    'employee_code'  => $this->generateUniqueCode(),
+                    'branch_id'      => $branch->id,
+                    'department_id'  => $department->id,
+                    'subdivision_id' => $subdivision->id,
+                    'position_id'    => $position->id,
+          
+                ]
+            );
 
-        $user->assignRole('super_admin');
+            $user->syncRoles(['super_admin']);
 
-        // 4. Назначаем head в subdivision и department
-        $subdivision->update(['head_user_id' => $user->id]);
-        $department->update(['head_user_id'  => $user->id]);
+            $subdivision->update(['head_user_id' => $user->id]);
+            $department->update(['head_user_id'  => $user->id]);
 
-        $this->command->info('✅ Supervisor создан: supervisor@hr.uz / 1234');
-        $this->command->info("   Категория: {$position->category}, Разряд: {$position->grade}");
+            $this->command->info('✅ Supervisor: supervisor@hr.uz / 1234');
+            $this->command->info("   Code: {$user->employee_code}");
+            $this->command->info("   Кат. {$position->category}, {$position->grade}-й разряд");
+        });
+    }
+
+    private function generateUniqueCode(): string
+    {
+        do {
+            $letters = strtoupper(substr(str_shuffle('ABCDEFGHJKLMNPQRSTUVWXYZ'), 0, 3));
+            $digits  = str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT);
+            $code    = "EMP-{$letters}{$digits}";
+        } while (User::where('employee_code', $code)->exists());
+
+        return $code;
     }
 }

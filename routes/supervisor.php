@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Controllers\BranchController;
-use App\Http\Controllers\DepartmentController;
-use App\Http\Controllers\SubdivisionController;
-use App\Http\Controllers\PositionController;
+use App\Http\Controllers\Supervisor\BranchController;
+use App\Http\Controllers\Supervisor\DepartmentController;
+use App\Http\Controllers\Supervisor\SubdivisionController;
+use App\Http\Controllers\Supervisor\PositionController;
 use Illuminate\Support\Facades\Route;
 
 

@@ -105,8 +105,10 @@
             <span class="fw-semibold fs-6">{{ $department->name }}</span>
             <code class="px-2 py-1 rounded">{{ $department->code }}</code>
             <span class="text-muted small">
+
                 <i class="bi bi-building me-1"></i>{{ $department->branch->name }}
             </span>
+            
         </div>
 
         <div class="row g-4">

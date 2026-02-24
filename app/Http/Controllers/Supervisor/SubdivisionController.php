@@ -1,16 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Supervisor;
 
+use App\Http\Controllers\Controller;
 use App\Models\Department;
 use App\Models\Subdivision;
 use Illuminate\Http\Request;
 
 class SubdivisionController extends Controller
 {
+    // ─── Для supervisor ──────────────────────────────────────
     public function index(Department $department)
     {
-        $department->load('branch'); // ← добавь эту строку
+        $department->load('branch');
 
         $subdivisions = Subdivision::where('department_id', $department->id)
             ->withCount('positions')
@@ -47,5 +49,32 @@ class SubdivisionController extends Controller
         return redirect()
             ->route('supervisor.departments.subdivisions.index', $department)
             ->with('success', 'Подразделение удалено.');
+    }
+
+    public function employeeView(Request $request)
+    {
+        $user = $request->user();
+
+        $user->load([
+            'branch',
+            'department',
+            'subdivision.positions.users',
+            'subdivision.head', // ← ответственный за подразделение
+            'position',
+        ]);
+
+        if (!$user->subdivision_id) {
+            return view('employee.subdivision', [
+                'user'        => $user,
+                'subdivision' => null,
+                'positions'   => collect(),
+            ]);
+        }
+
+        return view('employee.subdivision', [
+            'user'        => $user,
+            'subdivision' => $user->subdivision,
+            'positions'   => $user->subdivision->positions,
+        ]);
     }
 }

@@ -19,3 +19,5 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 require __DIR__.'/supervisor.php';
+require __DIR__.'/employee.php';
+require __DIR__.'/hr.php';

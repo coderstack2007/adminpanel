@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Supervisor;
 
 use App\Models\Branch;
 use App\Models\Department;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class DepartmentController extends Controller
 {
