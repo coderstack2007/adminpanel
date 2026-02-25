@@ -1,10 +1,30 @@
 <x-app-layout>
-    @php
-        $grade = auth()->user()->position_grade;
-        $canSeeRequests = auth()->user()->hasAnyRole(['super_admin', 'hr_manager', 'department_head'])
-            || ($grade !== null && $grade >= 3);
-    @endphp
 
+@push('styles')
+<style>
+    .card { background-color: rgb(31, 41, 65) !important; color: #f9fafb !important; }
+    .card-header {
+        background-color: rgb(31, 41, 55) !important;
+        border-bottom-color: rgba(255,255,255,0.1) !important;
+        color: #f9fafb !important;
+    }
+    .table { color: #f9fafb !important; }
+    .table-light th {
+        background-color: rgb(17, 24, 39) !important;
+        color: #9ca3af !important;
+        border-bottom-color: rgba(255,255,255,0.1) !important;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgb(55, 65, 81) !important;
+        cursor: pointer;
+    }
+    .table > :not(caption) > * > * {
+        background-color: transparent !important;
+        border-bottom-color: rgba(255,255,255,0.07) !important;
+    }
+    code { background-color: rgb(17, 24, 39) !important; color: #a78bfa !important; }
+</style>
+@endpush
     <x-slot name="header">
         <h2 class="h5 fw-semibold mb-0" style="color: var(--text-main)">Dashboard</h2>
     </x-slot>
@@ -14,7 +34,7 @@
             <div class="col-lg-8">
                 <div class="row g-3">
 
-                    {{-- Super Admin: Филиалы --}}
+                    {{-- ── SUPER ADMIN ─────────────────────────────── --}}
                     @role('super_admin')
                     <div class="col-md-6">
                         <a href="{{ route('supervisor.branches.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
@@ -25,9 +45,52 @@
                             </div>
                         </a>
                     </div>
+                    <div class="col-md-6">
+                        <a href="{{ route('hr.statements.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+                            <div class="card-body text-center py-4">
+                                <i class="bi bi-files fs-1 text-info"></i>
+                                <p class="mt-2 mb-0 fw-semibold">Все заявки</p>
+                                <small class="text-muted">Управление заявками</small>
+                            </div>
+                        </a>
+                    </div>
+
+                    {{-- Список заявок для super_admin --}}
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-list-ul me-2"></i>Последние заявки</span>
+                                @php $adminStatements = \App\Models\VacancyRequest::with(['position','requester'])->latest()->take(5)->get(); @endphp
+                                <span class="badge bg-primary rounded-pill">{{ \App\Models\VacancyRequest::count() }}</span>
+                            </div>
+                            <div class="card-body" style="min-height:200px;">
+                                @if($adminStatements->isEmpty())
+                                    <div class="d-flex flex-column align-items-center justify-content-center py-4">
+                                        <i class="bi bi-inbox text-muted mb-2" style="font-size:2.5rem"></i>
+                                        <p class="text-muted mb-0">Заявок нет</p>
+                                    </div>
+                                @else
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <tbody>
+                                                @foreach($adminStatements as $s)
+                                                <tr onclick="window.location='{{ route('hr.statements.show', $s) }}'" style="cursor:pointer">
+                                                    <td style="color:#fff" class="fw-semibold">{{ $s->position?->name ?? '—' }}</td>
+                                                    <td class="text-muted small">{{ $s->requester?->name ?? '—' }}</td>
+                                                    <td><span class="badge bg-{{ $s->status_color }}">{{ $s->status_label }}</span></td>
+                                                    <td class="text-muted small">{{ $s->created_at->format('d.m.Y') }}</td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                     @endrole
 
-                    {{-- HR Manager: Панель --}}
+                    {{-- ── HR MANAGER ───────────────────────────────── --}}
                     @role('hr_manager')
                     <div class="col-md-6">
                         <a href="{{ route('hr.departments.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
@@ -38,9 +101,56 @@
                             </div>
                         </a>
                     </div>
+                    <div class="col-md-6">
+                        <a href="{{ route('hr.statements.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+                            <div class="card-body text-center py-4">
+                                <i class="bi bi-files fs-1 text-info"></i>
+                                <p class="mt-2 mb-0 fw-semibold">Заявки HR</p>
+                                <small class="text-muted">Все поступившие заявки</small>
+                            </div>
+                        </a>
+                    </div>
+
+                    {{-- Список заявок для hr_manager --}}
+                    <div class="col-12" >
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-list-ul me-2"></i>Поступившие заявки</span>
+                                @php
+                                    $hrStatements = \App\Models\VacancyRequest::with(['position','requester'])
+                                        ->whereIn('status', ['submitted','hr_reviewed'])
+                                        ->latest()->take(5)->get();
+                                @endphp
+                                <span class="badge bg-primary rounded-pill">{{ $hrStatements->count() }}</span>
+                            </div>
+                            <div class="card-body" style="min-height:200px;">
+                                @if($hrStatements->isEmpty())
+                                    <div class="d-flex flex-column align-items-center justify-content-center py-4">
+                                        <i class="bi bi-inbox text-muted mb-2" style="font-size:2.5rem"></i>
+                                        <p class="text-muted mb-0">Новых заявок нет</p>
+                                    </div>
+                                @else
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <tbody>
+                                                @foreach($hrStatements as $s)
+                                                <tr onclick="window.location='{{ route('hr.statements.show', $s) }}'" style="cursor:pointer">
+                                                    <td style="color:#fff" class="fw-semibold">{{ $s->position?->name ?? '—' }}</td>
+                                                    <td class="text-muted small">{{ $s->requester?->name ?? '—' }}</td>
+                                                    <td><span class="badge bg-{{ $s->status_color }}">{{ $s->status_label }}</span></td>
+                                                    <td class="text-muted small">{{ $s->created_at->format('d.m.Y') }}</td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                     @endrole
 
-                    {{-- Department Head: только своё подразделение --}}
+                    {{-- ── DEPARTMENT HEAD ──────────────────────────── --}}
                     @role('department_head')
                     <div class="col-md-6">
                         @if(auth()->user()->subdivision_id)
@@ -60,12 +170,8 @@
                             </div>
                         @endif
                     </div>
-                    @endrole
-
-                    {{-- Мои заявки --}}
-                    @if($canSeeRequests)
                     <div class="col-md-6">
-                        <a href="#" class="card border-0 shadow-sm text-decoration-none h-100">
+                        <a href="{{ route('department_head.statements.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
                             <div class="card-body text-center py-4">
                                 <i class="bi bi-file-earmark-plus fs-1 text-success"></i>
                                 <p class="mt-2 mb-0 fw-semibold">Мои заявки</p>
@@ -73,9 +179,50 @@
                             </div>
                         </a>
                     </div>
-                    @endif
 
-                    {{-- Employee: моё подразделение --}}
+                    {{-- Список заявок для department_head --}}
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-list-ul me-2"></i>Мои заявки</span>
+                                @php
+                                    $myStatements = \App\Models\VacancyRequest::with(['position'])
+                                        ->where('requester_id', auth()->id())
+                                        ->latest()->take(5)->get();
+                                @endphp
+                                <a href="{{ route('department_head.statements.index') }}"
+                                   class="badge bg-primary rounded-pill text-decoration-none">
+                                    {{ \App\Models\VacancyRequest::where('requester_id', auth()->id())->count() }}
+                                </a>
+                            </div>
+                            <div class="card-body" style="min-height:200px;">
+                                @if($myStatements->isEmpty())
+                                    <div class="d-flex flex-column align-items-center justify-content-center py-4">
+                                        <i class="bi bi-inbox text-muted mb-2" style="font-size:2.5rem"></i>
+                                        <p class="text-muted mb-0">Заявок нет</p>
+                                        <small class="text-muted">Создайте первую заявку</small>
+                                    </div>
+                                @else
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <tbody>
+                                                @foreach($myStatements as $s)
+                                                <tr onclick="window.location='{{ route('department_head.statements.show', $s) }}'" style="cursor:pointer">
+                                                    <td style="color:#fff" class="fw-semibold">{{ $s->position?->name ?? '—' }}</td>
+                                                    <td><span class="badge bg-{{ $s->status_color }}">{{ $s->status_label }}</span></td>
+                                                    <td class="text-muted small">{{ $s->created_at->format('d.m.Y') }}</td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @endrole
+
+                    {{-- ── EMPLOYEE ─────────────────────────────────── --}}
                     @role('employee')
                     <div class="col-md-6">
                         <a href="{{ route('employee.subdivision.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
@@ -88,28 +235,10 @@
                     </div>
                     @endrole
 
-                    {{-- Список заявок --}}
-                    @if($canSeeRequests)
-                    <div class="col-12">
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-header fw-semibold">
-                                <i class="bi bi-list-ul me-2"></i>Мои заявки
-                            </div>
-                            <div class="card-body" style="min-height: 300px;">
-                                <div class="d-flex flex-column align-items-center justify-content-center h-100 py-5" style="min-height: 250px;">
-                                    <i class="bi bi-inbox text-muted mb-3" style="font-size: 3.5rem;"></i>
-                                    <p class="text-muted mb-0 fs-5">Заявок нет</p>
-                                    <small class="text-muted">Ваши заявки появятся здесь</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
                 </div>
             </div>
 
-            {{-- Правая часть: личные данные --}}
+            {{-- ── ПРАВАЯ ЧАСТЬ: личные данные ─────────────────── --}}
             <div class="col-lg-4">
                 <div class="card border-0 h-100">
                     <div class="card-header fw-semibold">

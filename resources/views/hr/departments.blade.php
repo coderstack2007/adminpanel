@@ -2,7 +2,7 @@
 
 @push('styles')
 <style>
-    .card { background-color: rgb(31, 41, 55) !important; color: #f9fafb !important; }
+    .card { background-color: rgb(31, 41, 65) !important; color: #f9fafb !important; }
     .card-header {
         background-color: rgb(31, 41, 55) !important;
         border-bottom-color: rgba(255,255,255,0.1) !important;
