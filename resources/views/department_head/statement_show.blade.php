@@ -111,7 +111,7 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 {{-- Статус --}}
-                <span class="status-pill bg-{{ $statement->status_color }} bg-opacity-20 text-{{ $statement->status_color }}">
+                <span class="status-pill bg-{{ $statement->status_color }} bg-opacity-20 ">
                     <span class="rounded-circle d-inline-block" style="width:6px;height:6px;background:currentColor"></span>
                     {{ $statement->status_label }}
                 </span>

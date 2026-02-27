@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
-
 class PositionController extends Controller
 {
     public function index(Subdivision $subdivision)
@@ -30,20 +29,16 @@ class PositionController extends Controller
 
     public function store(Request $request, Subdivision $subdivision)
     {
-        // ─── Валидация ────────────────────────────────────────
         $rules = [
             'name'      => 'required|string|max:255',
             'category'  => 'required|in:A,B,C,D',
             'grade'     => 'required|integer|min:1|max:5',
-          
-            // Поля сотрудника — необязательные
             'user_name' => 'nullable|string|max:255',
             'email'     => 'nullable|email|unique:users,email',
             'password'  => 'nullable|string|min:4',
             'role'      => 'nullable|exists:roles,name',
         ];
 
-        // Если email заполнен — user_name, password, role становятся обязательными
         if ($request->filled('email')) {
             $rules['user_name'] = 'required|string|max:255';
             $rules['password']  = 'required|string|min:4';
@@ -52,20 +47,17 @@ class PositionController extends Controller
 
         $validated = $request->validate($rules);
 
-        // ─── Транзакция — оба или никто ──────────────────────
         DB::transaction(function () use ($validated, $request, $subdivision) {
-
             $withUser = $request->filled('email');
 
-            // 1. Создаём должность
+            // Должность вакантна если сотрудник не создаётся сразу
             $position = $subdivision->positions()->create([
                 'name'      => $validated['name'],
                 'category'  => $validated['category'],
                 'grade'     => $validated['grade'],
-              
+                'is_vacant' => !$withUser,  // ← сразу правильное значение
             ]);
 
-            // 2. Если email указан — создаём пользователя
             if ($withUser) {
                 $subdivision->load('department.branch');
 
@@ -78,10 +70,10 @@ class PositionController extends Controller
                     'subdivision_id' => $subdivision->id,
                     'department_id'  => $subdivision->department_id,
                     'branch_id'      => $subdivision->department->branch_id,
-                 
                 ]);
 
                 $user->assignRole($validated['role']);
+
                 if ($validated['role'] === 'department_head') {
                     $subdivision->update(['head_user_id' => $user->id]);
                 }
@@ -101,7 +93,6 @@ class PositionController extends Controller
     {
         $currentUser = auth()->user();
 
-        // Запрет удаления своей должности
         if ($currentUser->position_id === $position->id) {
             return redirect()
                 ->route('supervisor.subdivisions.positions.index', $subdivision)
@@ -109,9 +100,8 @@ class PositionController extends Controller
         }
 
         DB::transaction(function () use ($position) {
-            // Удаляем привязанных пользователей вместе с должностью
             $position->users()->each(function ($user) {
-                $user->roles()->detach();  // убираем роли Spatie
+                $user->roles()->detach();
                 $user->delete();
             });
 

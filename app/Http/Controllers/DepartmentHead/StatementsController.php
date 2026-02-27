@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/DepartmentHead/StatementsController.php
 
 namespace App\Http\Controllers\DepartmentHead;
 
@@ -7,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Position;
 use App\Models\VacancyRequest;
 use App\Models\VacancyRequestLog;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +17,7 @@ class StatementsController extends Controller
         $user = $request->user();
 
         $statements = VacancyRequest::where('requester_id', $user->id)
-            ->with(['position', 'subdivision'])
+            ->with(['position', 'subdivision', 'state'])
             ->orderByDesc('created_at')
             ->get();
 
@@ -27,16 +27,19 @@ class StatementsController extends Controller
     public function create(Request $request)
     {
         $user = $request->user()->load([
-            'branch', 'department', 'subdivision.positions', 'subdivision.head.position', 'position',
+            'branch', 'department', 'subdivision.positions', 'position',
         ]);
 
+        // Только вакантные должности своего подразделения
         $vacantPositions = Position::where('subdivision_id', $user->subdivision_id)
             ->where('is_vacant', true)
             ->get();
 
         $allPositions = Position::where('subdivision_id', $user->subdivision_id)->get();
 
-        return view('department_head.statement_create', compact('user', 'vacantPositions', 'allPositions'));
+        return view('department_head.statement_create', compact(
+            'user', 'vacantPositions', 'allPositions'
+        ));
     }
 
     public function store(Request $request)
@@ -51,34 +54,28 @@ class StatementsController extends Controller
             'work_start'               => 'nullable|date_format:H:i',
             'work_end'                 => 'nullable|date_format:H:i',
             'grade'                    => 'nullable|integer|min:1|max:5',
-            'salary_probation'         => 'nullable|numeric|min:0',
-            'salary_after_probation'   => 'nullable|numeric|min:0',
+            'salary_probation'         => 'nullable|numeric',
+            'salary_after_probation'   => 'nullable|numeric',
             'bonuses'                  => 'nullable|string',
-            'opening_reason'           => 'required|string',
+            'opening_reason'           => 'nullable|string',
             'age_category'             => 'nullable|string',
             'gender'                   => 'nullable|string',
             'education'                => 'nullable|string',
             'experience'               => 'nullable|string',
             'languages'                => 'nullable|array',
-            'languages.*.lang'         => 'nullable|string',
-            'languages.*.level'        => 'nullable|string',
+            'languages.*.lang'         => 'required_with:languages|string',
+            'languages.*.level'        => 'required_with:languages|string',
             'specialized_knowledge'    => 'nullable|string',
             'job_responsibilities'     => 'nullable|string',
             'additional_requirements'  => 'nullable|string',
-            'vacancy_close_deadline'   => 'nullable|date|after:today',
+            'vacancy_close_deadline'   => 'nullable|date',
         ]);
 
         $position = Position::findOrFail($validated['position_id']);
 
-        // Убираем пустые языки
-        if (!empty($validated['languages'])) {
-            $validated['languages'] = array_values(array_filter(
-                $validated['languages'],
-                fn($l) => !empty($l['lang'])
-            ));
-        }
-
         DB::transaction(function () use ($validated, $user, $position) {
+            $state = \App\Models\State::byKey('draft');
+
             $statement = VacancyRequest::create([
                 ...$validated,
                 'requester_id'      => $user->id,
@@ -88,13 +85,14 @@ class StatementsController extends Controller
                 'position_category' => $position->category,
                 'workplace'         => $user->branch?->name,
                 'status'            => 'draft',
+                'state_id'          => $state?->id,
             ]);
 
             VacancyRequestLog::create([
                 'vacancy_request_id' => $statement->id,
                 'user_id'            => $user->id,
                 'status'             => 'draft',
-                'comment'            => 'Заявка создана',
+                'comment'            => 'Заявка создана как черновик',
             ]);
         });
 
@@ -103,40 +101,40 @@ class StatementsController extends Controller
             ->with('success', 'Заявка сохранена как черновик.');
     }
 
-    public function show(VacancyRequest $statement)
+    public function edit(VacancyRequest $statement)
     {
-        // Заказчик видит только свои
-        if (!auth()->user()->hasAnyRole(['hr_manager', 'super_admin'])) {
-            abort_if($statement->requester_id !== auth()->id(), 403);
+        // Только заявитель может редактировать черновик
+        if ($statement->requester_id !== auth()->id() || !$statement->isDraft()) {
+            abort(403);
         }
 
-        $statement->load([
-            'position', 'subdivision.head.position',
-            'department', 'branch', 'requester',
-            'hrEditor', 'logs.user',
-        ]);
+        $user = auth()->user()->load(['branch', 'department', 'subdivision', 'position']);
 
-        return view('department_head.statement_show', compact('statement'));
+        $vacantPositions = Position::where('subdivision_id', $user->subdivision_id)
+            ->where('is_vacant', true)
+            ->get();
+
+        $allPositions = Position::where('subdivision_id', $user->subdivision_id)->get();
+
+        return view('department_head.statement_edit', compact('statement', 'user', 'vacantPositions', 'allPositions'));
     }
 
     public function update(Request $request, VacancyRequest $statement)
     {
-        $user = $request->user();
-
-        // Проверка прав
-        $isOwner = $statement->requester_id === $user->id && $statement->isDraft();
-        $isHr    = $user->hasAnyRole(['hr_manager', 'super_admin'])
-                   && in_array($statement->status, ['submitted', 'hr_reviewed']);
-
-        abort_if(!$isOwner && !$isHr, 403);
+        if ($statement->requester_id !== auth()->id() || !$statement->isDraft()) {
+            abort(403);
+        }
 
         $validated = $request->validate([
-            'grade'                    => 'nullable|integer|min:1|max:5',
+            'position_id'              => 'required|exists:positions,id',
+            'reports_to'               => 'nullable|string|max:255',
+            'subordinates'             => 'nullable|array',
             'work_schedule'            => 'nullable|string|max:50',
             'work_start'               => 'nullable|date_format:H:i',
             'work_end'                 => 'nullable|date_format:H:i',
-            'salary_probation'         => 'nullable|numeric|min:0',
-            'salary_after_probation'   => 'nullable|numeric|min:0',
+            'grade'                    => 'nullable|integer|min:1|max:5',
+            'salary_probation'         => 'nullable|numeric',
+            'salary_after_probation'   => 'nullable|numeric',
             'bonuses'                  => 'nullable|string',
             'opening_reason'           => 'nullable|string',
             'age_category'             => 'nullable|string',
@@ -144,69 +142,49 @@ class StatementsController extends Controller
             'education'                => 'nullable|string',
             'experience'               => 'nullable|string',
             'languages'                => 'nullable|array',
-            'languages.*.lang'         => 'nullable|string',
-            'languages.*.level'        => 'nullable|string',
+            'languages.*.lang'         => 'required_with:languages|string',
+            'languages.*.level'        => 'required_with:languages|string',
             'specialized_knowledge'    => 'nullable|string',
             'job_responsibilities'     => 'nullable|string',
             'additional_requirements'  => 'nullable|string',
             'vacancy_close_deadline'   => 'nullable|date',
         ]);
 
-        if (!empty($validated['languages'])) {
-            $validated['languages'] = array_values(array_filter(
-                $validated['languages'],
-                fn($l) => !empty($l['lang'])
-            ));
-        }
+        $statement->update($validated);
 
-        DB::transaction(function () use ($validated, $statement, $user, $isHr, $request) {
-            $action = $request->input('action', 'save');
+        VacancyRequestLog::create([
+            'vacancy_request_id' => $statement->id,
+            'user_id'            => auth()->id(),
+            'status'             => 'draft',
+            'comment'            => 'Черновик обновлён заявителем',
+        ]);
 
-            // HR фиксируется как редактор
-            if ($isHr) {
-                $validated['hr_editor_id'] = $user->id;
-
-                // Если HR нажал "Отправить руководителю"
-                if ($action === 'send_to_head') {
-                    $validated['status'] = 'hr_reviewed';
-                    $statement->update($validated);
-
-                    VacancyRequestLog::create([
-                        'vacancy_request_id' => $statement->id,
-                        'user_id'            => $user->id,
-                        'status'             => 'hr_reviewed',
-                        'comment'            => 'HR проверил и отправил руководителю',
-                    ]);
-
-                    return;
-                }
-            }
-
-            $statement->update($validated);
-
-            VacancyRequestLog::create([
-                'vacancy_request_id' => $statement->id,
-                'user_id'            => $user->id,
-                'status'             => $statement->status,
-                'comment'            => $isHr ? 'HR внёс изменения' : 'Заявка обновлена',
-            ]);
-        });
-
-        $route = auth()->user()->hasAnyRole(['hr_manager', 'super_admin'])
-            ? route('hr.statements.show', $statement)
-            : route('department_head.statements.show', $statement);
-
-        return redirect($route)->with('success', 'Изменения сохранены.');
+        return redirect()
+            ->route('department_head.statements.show', $statement)
+            ->with('success', 'Заявка обновлена.');
     }
 
+    public function show(VacancyRequest $statement)
+    {
+        $statement->load(['position', 'subdivision.head', 'logs.user', 'requester', 'state', 'editedBy']);
+        return view('department_head.statement_show', compact('statement'));
+    }
+
+    /**
+     * DepartmentHead отправляет черновик в HR
+     */
     public function submit(VacancyRequest $statement)
     {
-        abort_if($statement->requester_id !== auth()->id(), 403);
-        abort_if(!$statement->isDraft(), 403);
+        if ($statement->requester_id !== auth()->id() || !$statement->isDraft()) {
+            abort(403);
+        }
 
-        DB::transaction(function () use ($statement) {
+        $state = \App\Models\State::byKey('submitted');
+
+        DB::transaction(function () use ($statement, $state) {
             $statement->update([
                 'status'       => 'submitted',
+                'state_id'     => $state?->id,
                 'submitted_at' => now(),
             ]);
 
@@ -214,12 +192,48 @@ class StatementsController extends Controller
                 'vacancy_request_id' => $statement->id,
                 'user_id'            => auth()->id(),
                 'status'             => 'submitted',
-                'comment'            => 'Заявка отправлена на рассмотрение в HR',
+                'comment'            => 'Заявка отправлена в HR на рассмотрение',
             ]);
+
+            // Уведомить всех HR
+            NotificationService::onSubmittedToHr($statement);
         });
 
         return redirect()
             ->route('department_head.statements.show', $statement)
             ->with('success', 'Заявка отправлена в HR.');
+    }
+
+    /**
+     * DepartmentHead подтверждает закрытие вакансии
+     */
+    public function confirmClose(VacancyRequest $statement)
+    {
+        if ($statement->requester_id !== auth()->id() || !$statement->isClosed()) {
+            abort(403);
+        }
+
+        $state = \App\Models\State::byKey('confirmed_closed');
+
+        DB::transaction(function () use ($statement, $state) {
+            $statement->update([
+                'status'   => 'confirmed_closed',
+                'state_id' => $state?->id,
+            ]);
+
+            VacancyRequestLog::create([
+                'vacancy_request_id' => $statement->id,
+                'user_id'            => auth()->id(),
+                'status'             => 'confirmed_closed',
+                'comment'            => 'Заявитель подтвердил закрытие вакансии',
+            ]);
+
+            // Уведомить HR
+            NotificationService::onConfirmedClosed($statement);
+        });
+
+        return redirect()
+            ->route('department_head.statements.show', $statement)
+            ->with('success', 'Закрытие вакансии подтверждено.');
     }
 }

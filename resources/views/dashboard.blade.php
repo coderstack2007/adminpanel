@@ -74,7 +74,7 @@
                                         <table class="table table-hover align-middle mb-0">
                                             <tbody>
                                                 @foreach($adminStatements as $s)
-                                                <tr onclick="window.location='{{ route('hr.statements.show', $s) }}'" style="cursor:pointer">
+                                                <tr onclick="window.location='{{ route('supervisor.statements.show', $s) }}'" style="cursor:pointer">
                                                     <td style="color:#fff" class="fw-semibold">{{ $s->position?->name ?? '—' }}</td>
                                                     <td class="text-muted small">{{ $s->requester?->name ?? '—' }}</td>
                                                     <td><span class="badge bg-{{ $s->status_color }}">{{ $s->status_label }}</span></td>

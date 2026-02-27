@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -91,6 +92,24 @@ return new class extends Migration
             $table->text('comment')->nullable();
             $table->timestamps();
         });
+
+
+
+        DB::statement("
+        ALTER TABLE vacancy_requests 
+        MODIFY COLUMN status ENUM(
+            'draft',
+            'submitted',
+            'hr_reviewed',
+            'supervisor_review',  -- добавляем недостающее
+            'approved',
+            'rejected',
+            'on_hold',
+            'searching',
+            'closed',
+            'confirmed_closed'
+        ) NOT NULL DEFAULT 'draft'
+    ");
     }
 
     public function down(): void
