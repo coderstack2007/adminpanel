@@ -90,65 +90,175 @@
                     </div>
                     @endrole
 
-                    {{-- ── HR MANAGER ───────────────────────────────── --}}
-                    @role('hr_manager')
-                    <div class="col-md-6">
-                        <a href="{{ route('hr.departments.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
-                            <div class="card-body text-center py-4">
-                                <i class="bi bi-people-fill fs-1 text-primary"></i>
-                                <p class="mt-2 mb-0 fw-semibold">HR Панель</p>
-                                <small class="text-muted">Все отделы и подразделения</small>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-6">
-                        <a href="{{ route('hr.statements.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
-                            <div class="card-body text-center py-4">
-                                <i class="bi bi-files fs-1 text-info"></i>
-                                <p class="mt-2 mb-0 fw-semibold">Заявки HR</p>
-                                <small class="text-muted">Все поступившие заявки</small>
-                            </div>
-                        </a>
-                    </div>
+                    
+                   {{-- ── HR MANAGER ───────────────────────────────── --}}
+@role('hr_manager')
+<div class="col-md-6">
+    <a href="{{ route('hr.departments.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+        <div class="card-body text-center py-4">
+            <i class="bi bi-people-fill fs-1 text-primary"></i>
+            <p class="mt-2 mb-0 fw-semibold">HR Панель</p>
+            <small class="text-muted">Все отделы и подразделения</small>
+        </div>
+    </a>
+</div>
+<div class="col-md-6">
+    <a href="{{ route('hr.statements.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+        <div class="card-body text-center py-4">
+            <i class="bi bi-files fs-1 text-info"></i>
+            <p class="mt-2 mb-0 fw-semibold">Заявки HR</p>
+            <small class="text-muted">Все поступившие заявки</small>
+        </div>
+    </a>
+</div>
 
-                    {{-- Список заявок для hr_manager --}}
-                    <div class="col-12" >
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
-                                <span><i class="bi bi-list-ul me-2"></i>Поступившие заявки</span>
-                                @php
-                                    $hrStatements = \App\Models\VacancyRequest::with(['position','requester'])
-                                        ->whereIn('status', ['submitted','hr_reviewed'])
-                                        ->latest()->take(5)->get();
-                                @endphp
-                                <span class="badge bg-primary rounded-pill">{{ $hrStatements->count() }}</span>
-                            </div>
-                            <div class="card-body" style="min-height:200px;">
-                                @if($hrStatements->isEmpty())
-                                    <div class="d-flex flex-column align-items-center justify-content-center py-4">
-                                        <i class="bi bi-inbox text-muted mb-2" style="font-size:2.5rem"></i>
-                                        <p class="text-muted mb-0">Новых заявок нет</p>
-                                    </div>
-                                @else
-                                    <div class="table-responsive">
-                                        <table class="table table-hover align-middle mb-0">
-                                            <tbody>
-                                                @foreach($hrStatements as $s)
-                                                <tr onclick="window.location='{{ route('hr.statements.show', $s) }}'" style="cursor:pointer">
-                                                    <td style="color:#fff" class="fw-semibold">{{ $s->position?->name ?? '—' }}</td>
-                                                    <td class="text-muted small">{{ $s->requester?->name ?? '—' }}</td>
-                                                    <td><span class="badge bg-{{ $s->status_color }}">{{ $s->status_label }}</span></td>
-                                                    <td class="text-muted small">{{ $s->created_at->format('d.m.Y') }}</td>
-                                                </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
+{{-- ── Поступившие заявки ──────────────────────────────── --}}
+<div class="col-12">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-list-ul me-2"></i>Поступившие заявки</span>
+            @php
+                $hrStatements = \App\Models\VacancyRequest::with(['position','requester'])
+                    ->whereIn('status', ['submitted','hr_reviewed'])
+                    ->latest()->take(5)->get();
+            @endphp
+            <span class="badge bg-primary rounded-pill">{{ $hrStatements->count() }}</span>
+        </div>
+        <div class="card-body" style="min-height:200px;">
+            @if($hrStatements->isEmpty())
+                <div class="d-flex flex-column align-items-center justify-content-center py-4">
+                    <i class="bi bi-inbox text-muted mb-2" style="font-size:2.5rem"></i>
+                    <p class="text-muted mb-0">Новых заявок нет</p>
+                </div>
+            @else
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <tbody>
+                            @foreach($hrStatements as $s)
+                            <tr onclick="window.location='{{ route('hr.statements.show', $s) }}'" style="cursor:pointer">
+                                <td style="color:#fff" class="fw-semibold">{{ $s->position?->name ?? '—' }}</td>
+                                <td class="text-muted small">{{ $s->requester?->name ?? '—' }}</td>
+                                <td><span class="badge bg-{{ $s->status_color }}">{{ $s->status_label }}</span></td>
+                                <td class="text-muted small">{{ $s->created_at->format('d.m.Y') }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+
+    {{-- ── Резюме из Telegram-бота ────────────────────────── --}}
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+                <span>
+                    <i class="bi bi-person-lines-fill me-2 text-success"></i>Резюме из Telegram-бота
+                </span>
+                @php
+                    // Получаем резюме из resume_bot БД с join на vacancy_requests
+                    try {
+                        $botResumes = \Illuminate\Support\Facades\DB::connection('resume_bot')
+                            ->table('resumes as r')
+                            ->join('regions as reg', 'r.region_id', '=', 'reg.id')
+                            ->join('cities as c', 'r.city_id', '=', 'c.id')
+                            ->select(
+                                'r.id',
+                                'r.name',
+                                'r.age',
+                                'r.phone',
+                                'r.vacancy_id',
+                                'r.language',
+                                'r.created_at',
+                                'reg.name_ru as region_name',
+                                'c.name_ru as city_name'
+                            )
+                            ->orderByDesc('r.created_at')
+                            ->take(10)
+                            ->get();
+
+                        // Подтягиваем названия вакансий из adminresumes
+                        $vacancyIds = $botResumes->pluck('vacancy_id')->filter()->unique()->values();
+                        $vacancies  = \App\Models\VacancyRequest::with('position')
+                            ->whereIn('id', $vacancyIds)
+                            ->get()
+                            ->keyBy('id');
+
+                        $totalResumes = \Illuminate\Support\Facades\DB::connection('resume_bot')
+                            ->table('resumes')
+                            ->count();
+                    } catch (\Exception $e) {
+                        $botResumes   = collect();
+                        $vacancies    = collect();
+                        $totalResumes = 0;
+                    }
+                @endphp
+                <span class="badge bg-success rounded-pill">{{ $totalResumes }}</span>
+            </div>
+            <div class="card-body" style="min-height:200px;">
+                @if($botResumes->isEmpty())
+                    <div class="d-flex flex-column align-items-center justify-content-center py-4">
+                        <i class="bi bi-inbox text-muted mb-2" style="font-size:2.5rem"></i>
+                        <p class="text-muted mb-0">Резюме ещё не поступали</p>
                     </div>
-                    @endrole
+                @else
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr style="background:rgb(17,24,39)">
+                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Имя</th>
+                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Возраст</th>
+                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Телефон</th>
+                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Город</th>
+                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Вакансия</th>
+                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Язык</th>
+                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Дата</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($botResumes as $r)
+                                @php
+                                    $vacancy = $r->vacancy_id ? ($vacancies[$r->vacancy_id] ?? null) : null;
+                                @endphp
+                                <tr>
+                                    <td class="fw-semibold" style="color:#fff">{{ $r->name }}</td>
+                                    <td class="text-muted small">{{ $r->age }}</td>
+                                    <td class="text-muted small">
+                                        <a href="tel:{{ $r->phone }}" style="color:#6366f1">+{{ $r->phone }}</a>
+                                    </td>
+                                    <td class="text-muted small">
+                                        {{ $r->city_name }}, {{ $r->region_name }}
+                                    </td>
+                                    <td>
+                                        @if($vacancy)
+                                            <span class="badge bg-success bg-opacity-20 ">
+                                                {{ $vacancy->position?->name ?? '—' }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted small">—</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ $r->language === 'ru' ? '🇷🇺 RU' : '🇺🇿 UZ' }}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small">
+                                        {{ \Carbon\Carbon::parse($r->created_at)->format('d.m.Y H:i') }}
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+@endrole
 
                     {{-- ── DEPARTMENT HEAD ──────────────────────────── --}}
                     @role('department_head')

@@ -63,6 +63,20 @@ return [
             ]) : [],
         ],
 
+          'resume_bot' => [
+                'driver'    => 'mysql',
+                'host'      => env('RESUME_BOT_DB_HOST', '127.0.0.1'),
+                'port'      => env('RESUME_BOT_DB_PORT', '8889'),   // MAMP
+                'database'  => env('RESUME_BOT_DB_NAME', 'resume_bot'),
+                'username'  => env('RESUME_BOT_DB_USER', 'root'),
+                'password'  => env('RESUME_BOT_DB_PASS', 'root'),
+                'charset'   => 'utf8mb4',
+                'collation' => 'utf8mb4_unicode_ci',
+                'prefix'    => '',
+                'strict'    => false,
+                'engine'    => null,
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
@@ -113,6 +127,9 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+
+
+        
     ],
 
     /*
@@ -177,6 +194,7 @@ return [
             'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
             'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
         ],
+      
 
     ],
 
