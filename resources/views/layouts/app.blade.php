@@ -24,6 +24,7 @@
     @stack('styles')
 </head>
 <body>
+    
     <div style="min-height: 100vh; background-color: rgb(17,24,39);">
         @include('layouts.navigation')
 

@@ -35,7 +35,11 @@ Route::prefix('hr')
         Route::post('/statements/{statement}/send-supervisor', [HrStatementController::class, 'sendToSupervisor'])
             ->name('statements.send-supervisor');
 
-        // Закрыть вакансию (после решения supervisor'а) — оставлено на потом
-        // Route::post('/statements/{statement}/close', [HrStatementController::class, 'close'])
-        //     ->name('statements.close');
+            // Удаление вакансии
+        Route::delete('/statements/{statement}', [HrStatementController::class, 'deleteVacancy'])
+            ->name('statements.delete');
+        
+        // Удаление резюме
+        Route::delete('/resumes/{resumeId}', [HrStatementController::class, 'deleteResume'])
+            ->name('resumes.delete');
     });

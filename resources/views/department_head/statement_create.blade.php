@@ -47,6 +47,7 @@
 </style>
 @endpush
 
+
 <x-app-layout>
     <x-slot name="header">
         <div class="d-flex align-items-center justify-content-between">
@@ -362,39 +363,52 @@
                                     value="{{ old('experience') }}" placeholder="н-р от 2 лет в сфере...">
                             </div>
 
-                            <hr>
-                            <p class="section-title mt-3">Знание языков</p>
+                          <hr>
+                        <p class="section-title mt-3">Знание языков</p>
 
                             <div id="languages_container">
-                                @foreach(old('languages', [['lang'=>'','level'=>'']]) as $i => $lang)
+                                @php
+                                    $defaultLanguages = ['Русский', 'Английский', 'Узбекский'];
+                                    $oldLanguages = old('languages', []);
+                                @endphp
+                                
+                                @foreach($defaultLanguages as $index => $langName)
                                 <div class="lang-row d-flex align-items-center gap-2 mb-2">
-                                    <select class="form-select" name="languages[{{ $i }}][lang]" style="max-width:160px">
-                                        <option value="">— Язык —</option>
-                                        @foreach(['Русский','Английский','Узбекский','Другой'] as $l)
-                                            <option value="{{ $l }}" {{ ($lang['lang'] ?? '') === $l ? 'selected' : '' }}>
-                                                {{ $l }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <select class="form-select" name="languages[{{ $i }}][level]" style="max-width:180px">
-                                        <option value="">— Уровень —</option>
-                                        @foreach(['Начальный','Средний','Свободный'] as $lv)
-                                            <option value="{{ $lv }}" {{ ($lang['level'] ?? '') === $lv ? 'selected' : '' }}>
+                                    {{-- Скрытый input с названием языка --}}
+                                    <input type="hidden" name="languages[{{ $index }}][lang]" value="{{ $langName }}">
+                                    
+                                    {{-- Отображение названия языка --}}
+                                    <div class="info-badge" style="min-width:140px; max-width:140px;">
+                                        <i class="bi bi-translate me-1 text-primary"></i>
+                                        {{ $langName }}
+                                    </div>
+                                    
+                                    {{-- Выбор уровня --}}
+                                    <select 
+                                        class="form-select" 
+                                        name="languages[{{ $index }}][level]" 
+                                        style="max-width:180px"
+                                    >
+                                        <option value="">— Уровень не указан —</option>
+                                        @foreach(['Начальный', 'Средний', 'Свободный', 'Родной'] as $lv)
+                                            <option 
+                                                value="{{ $lv }}" 
+                                                {{ (isset($oldLanguages[$index]) && ($oldLanguages[$index]['level'] ?? '') === $lv) ? 'selected' : '' }}
+                                            >
                                                 {{ $lv }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    <button type="button" class="btn btn-sm btn-outline-danger remove-lang"
-                                        style="flex-shrink:0">
-                                        <i class="bi bi-x"></i>
-                                    </button>
                                 </div>
                                 @endforeach
                             </div>
 
-                            <button type="button" class="btn btn-sm btn-outline-primary mt-1" id="add_lang">
-                                <i class="bi bi-plus me-1"></i>Добавить язык
-                            </button>
+                            <div class="form-text text-muted mt-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Выберите уровень для тех языков, которыми владеет кандидат. Если язык не требуется, оставьте "Уровень не указан".
+                            </div>
+
+                  
 
                             <hr class="mt-4">
                             <p class="section-title mt-3">Профессиональные требования</p>

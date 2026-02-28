@@ -112,14 +112,14 @@
     </a>
 </div>
 
-{{-- ── Поступившие заявки ──────────────────────────────── --}}
+{{-- ── Поступившие заявки ────────────────────────────── --}}
 <div class="col-12">
     <div class="card border-0 shadow-sm">
         <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
             <span><i class="bi bi-list-ul me-2"></i>Поступившие заявки</span>
             @php
                 $hrStatements = \App\Models\VacancyRequest::with(['position','requester'])
-                    ->whereIn('status', ['submitted','hr_reviewed'])
+                    ->whereIn('status', ['approved','hr_reviewed'])
                     ->latest()->take(5)->get();
             @endphp
             <span class="badge bg-primary rounded-pill">{{ $hrStatements->count() }}</span>
@@ -135,11 +135,37 @@
                     <table class="table table-hover align-middle mb-0">
                         <tbody>
                             @foreach($hrStatements as $s)
-                            <tr onclick="window.location='{{ route('hr.statements.show', $s) }}'" style="cursor:pointer">
-                                <td style="color:#fff" class="fw-semibold">{{ $s->position?->name ?? '—' }}</td>
-                                <td class="text-muted small">{{ $s->requester?->name ?? '—' }}</td>
-                                <td><span class="badge bg-{{ $s->status_color }}">{{ $s->status_label }}</span></td>
-                                <td class="text-muted small">{{ $s->created_at->format('d.m.Y') }}</td>
+                            <tr>
+                                <td onclick="window.location='{{ route('hr.statements.show', $s) }}'" 
+                                    style="cursor:pointer; color:#fff" class="fw-semibold">
+                                    {{ $s->position?->name ?? '—' }}
+                                </td>
+                                <td onclick="window.location='{{ route('hr.statements.show', $s) }}'" 
+                                    style="cursor:pointer" class="text-muted small">
+                                    {{ $s->requester?->name ?? '—' }}
+                                </td>
+                                <td onclick="window.location='{{ route('hr.statements.show', $s) }}'" 
+                                    style="cursor:pointer">
+                                    <span class="badge bg-{{ $s->status_color }}">{{ $s->status_label }}</span>
+                                </td>
+                                <td onclick="window.location='{{ route('hr.statements.show', $s) }}'" 
+                                    style="cursor:pointer" class="text-muted small">
+                                    {{ $s->created_at->format('d.m.Y') }}
+                                </td>
+                                <td class="text-end">
+                                    <form action="{{ route('hr.statements.delete', $s) }}" 
+                                          method="POST" 
+                                          onsubmit="return confirm('Удалить вакансию и все связанные резюме?')"
+                                          class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-outline-danger" 
+                                                title="Удалить вакансию">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -150,113 +176,126 @@
     </div>
 </div>
 
-    {{-- ── Резюме из Telegram-бота ────────────────────────── --}}
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
-                <span>
-                    <i class="bi bi-person-lines-fill me-2 text-success"></i>Резюме из Telegram-бота
-                </span>
-                @php
-                    // Получаем резюме из resume_bot БД с join на vacancy_requests
-                    try {
-                        $botResumes = \Illuminate\Support\Facades\DB::connection('resume_bot')
-                            ->table('resumes as r')
-                            ->join('regions as reg', 'r.region_id', '=', 'reg.id')
-                            ->join('cities as c', 'r.city_id', '=', 'c.id')
-                            ->select(
-                                'r.id',
-                                'r.name',
-                                'r.age',
-                                'r.phone',
-                                'r.vacancy_id',
-                                'r.language',
-                                'r.created_at',
-                                'reg.name_ru as region_name',
-                                'c.name_ru as city_name'
-                            )
-                            ->orderByDesc('r.created_at')
-                            ->take(10)
-                            ->get();
+{{-- ── Резюме из Telegram-бота ────────────────────────── --}}
+<div class="col-12">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header fw-semibold d-flex align-items-center justify-content-between">
+            <span>
+                <i class="bi bi-person-lines-fill me-2 text-success"></i>Резюме из Telegram-бота
+            </span>
+            @php
+                try {
+                    $botResumes = \Illuminate\Support\Facades\DB::connection('resume_bot')
+                        ->table('resumes as r')
+                        ->join('regions as reg', 'r.region_id', '=', 'reg.id')
+                        ->join('cities as c', 'r.city_id', '=', 'c.id')
+                        ->select(
+                            'r.id',
+                            'r.name',
+                            'r.age',
+                            'r.phone',
+                            'r.vacancy_id',
+                            'r.language',
+                            'r.created_at',
+                            'reg.name_ru as region_name',
+                            'c.name_ru as city_name'
+                        )
+                        ->orderByDesc('r.created_at')
+                        ->take(10)
+                        ->get();
 
-                        // Подтягиваем названия вакансий из adminresumes
-                        $vacancyIds = $botResumes->pluck('vacancy_id')->filter()->unique()->values();
-                        $vacancies  = \App\Models\VacancyRequest::with('position')
-                            ->whereIn('id', $vacancyIds)
-                            ->get()
-                            ->keyBy('id');
+                    $vacancyIds = $botResumes->pluck('vacancy_id')->filter()->unique()->values();
+                    $vacancies  = \App\Models\VacancyRequest::with('position')
+                        ->whereIn('id', $vacancyIds)
+                        ->get()
+                        ->keyBy('id');
 
-                        $totalResumes = \Illuminate\Support\Facades\DB::connection('resume_bot')
-                            ->table('resumes')
-                            ->count();
-                    } catch (\Exception $e) {
-                        $botResumes   = collect();
-                        $vacancies    = collect();
-                        $totalResumes = 0;
-                    }
-                @endphp
-                <span class="badge bg-success rounded-pill">{{ $totalResumes }}</span>
-            </div>
-            <div class="card-body" style="min-height:200px;">
-                @if($botResumes->isEmpty())
-                    <div class="d-flex flex-column align-items-center justify-content-center py-4">
-                        <i class="bi bi-inbox text-muted mb-2" style="font-size:2.5rem"></i>
-                        <p class="text-muted mb-0">Резюме ещё не поступали</p>
-                    </div>
-                @else
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead>
-                                <tr style="background:rgb(17,24,39)">
-                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Имя</th>
-                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Возраст</th>
-                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Телефон</th>
-                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Город</th>
-                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Вакансия</th>
-                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Язык</th>
-                                    <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Дата</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($botResumes as $r)
-                                @php
-                                    $vacancy = $r->vacancy_id ? ($vacancies[$r->vacancy_id] ?? null) : null;
-                                @endphp
-                                <tr>
-                                    <td class="fw-semibold" style="color:#fff">{{ $r->name }}</td>
-                                    <td class="text-muted small">{{ $r->age }}</td>
-                                    <td class="text-muted small">
-                                        <a href="tel:{{ $r->phone }}" style="color:#6366f1">+{{ $r->phone }}</a>
-                                    </td>
-                                    <td class="text-muted small">
-                                        {{ $r->city_name }}, {{ $r->region_name }}
-                                    </td>
-                                    <td>
-                                        @if($vacancy)
-                                            <span class="badge bg-success bg-opacity-20 ">
-                                                {{ $vacancy->position?->name ?? '—' }}
-                                            </span>
-                                        @else
-                                            <span class="text-muted small">—</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary">
-                                            {{ $r->language === 'ru' ? '🇷🇺 RU' : '🇺🇿 UZ' }}
+                    $totalResumes = \Illuminate\Support\Facades\DB::connection('resume_bot')
+                        ->table('resumes')
+                        ->count();
+                } catch (\Exception $e) {
+                    $botResumes   = collect();
+                    $vacancies    = collect();
+                    $totalResumes = 0;
+                }
+            @endphp
+            <span class="badge bg-success rounded-pill">{{ $totalResumes }}</span>
+        </div>
+        <div class="card-body" style="min-height:200px;">
+            @if($botResumes->isEmpty())
+                <div class="d-flex flex-column align-items-center justify-content-center py-4">
+                    <i class="bi bi-inbox text-muted mb-2" style="font-size:2.5rem"></i>
+                    <p class="text-muted mb-0">Резюме ещё не поступали</p>
+                </div>
+            @else
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr style="background:rgb(17,24,39)">
+                                <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Имя</th>
+                                <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Возраст</th>
+                                <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Телефон</th>
+                                <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Город</th>
+                                <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Вакансия</th>
+                                <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Язык</th>
+                                <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none">Дата</th>
+                                <th style="color:#9ca3af;font-size:0.78rem;font-weight:600;border:none"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($botResumes as $r)
+                            @php
+                                $vacancy = $r->vacancy_id ? ($vacancies[$r->vacancy_id] ?? null) : null;
+                            @endphp
+                            <tr>
+                                <td class="fw-semibold" style="color:#fff">{{ $r->name }}</td>
+                                <td class="text-muted small">{{ $r->age }}</td>
+                                <td class="text-muted small">
+                                    <a href="tel:{{ $r->phone }}" style="color:#6366f1">+{{ $r->phone }}</a>
+                                </td>
+                                <td class="text-muted small">
+                                    {{ $r->city_name }}, {{ $r->region_name }}
+                                </td>
+                                <td>
+                                    @if($vacancy)
+                                        <span class="badge bg-success bg-opacity-20">
+                                            {{ $vacancy->position?->name ?? '—' }}
                                         </span>
-                                    </td>
-                                    <td class="text-muted small">
-                                        {{ \Carbon\Carbon::parse($r->created_at)->format('d.m.Y H:i') }}
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
-            </div>
+                                    @else
+                                        <span class="text-muted small">—</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ $r->language === 'ru' ? '🇷🇺 RU' : '🇺🇿 UZ' }}
+                                    </span>
+                                </td>
+                                <td class="text-muted small">
+                                    {{ \Carbon\Carbon::parse($r->created_at)->format('d.m.Y H:i') }}
+                                </td>
+                                <td class="text-end">
+                                    <form action="{{ route('hr.resumes.delete', $r->id) }}" 
+                                          method="POST" 
+                                          onsubmit="return confirm('Удалить это резюме?')"
+                                          class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-outline-danger" 
+                                                title="Удалить резюме">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         </div>
     </div>
+</div>
 
 @endrole
 

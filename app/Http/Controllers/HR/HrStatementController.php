@@ -9,7 +9,7 @@ use App\Models\VacancyRequestLog;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Log;
 class HrStatementController extends Controller
 {
     public function index()
@@ -134,4 +134,115 @@ class HrStatementController extends Controller
             ->route('hr.statements.show', $statement)
             ->with('success', 'Заявка отправлена руководителю на подпись.');
     }
+
+
+
+   public function deleteVacancy(VacancyRequest $statement)
+{
+    // Проверяем права доступа
+    if (!auth()->user()->hasRole('hr_manager')) {
+        abort(403, 'Доступ запрещен');
+    }
+
+    try {
+        DB::beginTransaction();
+
+        // 1. Удаляем все резюме из resume_bot БД, связанные с этой вакансией
+        $deletedResumes = DB::connection('resume_bot')
+            ->table('resumes')
+            ->where('vacancy_id', $statement->id)
+            ->delete();
+
+        Log::info("Удалено резюме из resume_bot: $deletedResumes шт. для вакансии #{$statement->id}");
+
+        // 2. Удаляем саму заявку из vacancy_requests (каскадно удалятся логи и уведомления)
+        $vacancyId = $statement->id;
+        $positionName = $statement->position?->name ?? 'Неизвестная должность';
+        
+        $statement->delete();
+
+        Log::info("Заявка #{$vacancyId} ({$positionName}) полностью удалена из vacancy_requests");
+
+        DB::commit();
+
+        return redirect()
+            ->route('hr.statements.index')
+            ->with('success', "Заявка «{$positionName}» и все связанные резюме ({$deletedResumes} шт.) успешно удалены");
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error("Ошибка удаления заявки #{$statement->id}: " . $e->getMessage());
+        
+        return redirect()
+            ->back()
+            ->with('error', 'Произошла ошибка при удалении заявки: ' . $e->getMessage());
+    }
+}
+
+    /**
+     * Удалить резюме из Telegram-бота
+     */
+    public function deleteResume(Request $request, $resumeId)
+    {
+        // Проверяем права доступа
+        if (!auth()->user()->hasRole('hr_manager')) {
+            abort(403, 'Доступ запрещен');
+        }
+
+        try {
+            // Удаляем резюме из resume_bot БД
+            $deleted = DB::connection('resume_bot')
+                ->table('resumes')
+                ->where('id', $resumeId)
+                ->delete();
+
+            if ($deleted) {
+                Log::info("Резюме #$resumeId удалено из resume_bot");
+                
+                return redirect()
+                    ->back()
+                    ->with('success', 'Резюме успешно удалено');
+            } else {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Резюме не найдено');
+            }
+
+        } catch (\Exception $e) {
+            Log::error("Ошибка удаления резюме #$resumeId: " . $e->getMessage());
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Произошла ошибка при удалении резюме: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Массовое удаление резюме по вакансии
+     */
+    public function deleteResumesByVacancy($vacancyId)
+    {
+        if (!auth()->user()->hasRole('hr_manager')) {
+            abort(403, 'Доступ запрещен');
+        }
+
+        try {
+            $deleted = DB::connection('resume_bot')
+                ->table('resumes')
+                ->where('vacancy_id', $vacancyId)
+                ->delete();
+
+            return redirect()
+                ->back()
+                ->with('success', "Удалено резюме: $deleted шт.");
+
+        } catch (\Exception $e) {
+            Log::error("Ошибка массового удаления резюме для вакансии #$vacancyId: " . $e->getMessage());
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Произошла ошибка: ' . $e->getMessage());
+        }
+    }
+
 }
