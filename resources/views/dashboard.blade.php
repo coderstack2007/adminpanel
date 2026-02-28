@@ -452,10 +452,8 @@
                                 {{ auth()->user()->last_login_at?->format('d.m.Y H:i') ?? '—' }}
                             </span>
                         </div>
-                        <hr class="my-1">
-                        <a href="#" class="btn btn-outline-primary btn-sm w-100">
-                            <i class="bi bi-pencil-square me-1"></i>Редактировать профиль
-                        </a>
+                        
+                        
                     </div>
                 </div>
             </div>

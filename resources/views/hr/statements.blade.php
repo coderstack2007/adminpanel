@@ -64,11 +64,7 @@
         {{-- Фильтры --}}
         <div class="d-flex align-items-center gap-2 flex-wrap mb-4">
             <button class="filter-btn active" data-filter="all">Все</button>
-            <button class="filter-btn" data-filter="submitted">Новые</button>
-            <button class="filter-btn" data-filter="hr_reviewed">На проверке</button>
-            <button class="filter-btn" data-filter="approved">Одобрены</button>
-            <button class="filter-btn" data-filter="rejected">Отклонены</button>
-            <button class="filter-btn" data-filter="searching">Поиск</button>
+           
         </div>
 
         <div class="card border-0 shadow-sm">

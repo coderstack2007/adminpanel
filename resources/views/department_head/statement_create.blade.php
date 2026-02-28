@@ -516,64 +516,6 @@
         </form>
     </div>
 
-    @push('scripts')
-    <script>
-    $(function () {
-        // ─── Автозаполнение категории при выборе должности ───
-        $('#position_select').on('change', function () {
-            const cat = $(this).find(':selected').data('category');
-            $('#category_display').html(
-                cat
-                    ? `<span class="badge text-white" style="background:${{ "{'A':'#7c3aed','B':'#1d4ed8','C':'#065f46','D':'#92400e'}" }}[cat] || '#6b7280'"}>Категория ${cat}</span>`
-                    : '— выберите должность —'
-            );
-        });
-
-        // ─── Добавление языка ────────────────────────────────
-        let langIdx = {{ count(old('languages', [[]])) }};
-
-        $('#add_lang').on('click', function () {
-            const tpl = `
-                <div class="lang-row d-flex align-items-center gap-2 mb-2">
-                    <select class="form-select" name="languages[${langIdx}][lang]" style="max-width:160px">
-                        <option value="">— Язык —</option>
-                        <option value="Русский">Русский</option>
-                        <option value="Английский">Английский</option>
-                        <option value="Узбекский">Узбекский</option>
-                        <option value="Другой">Другой</option>
-                    </select>
-                    <select class="form-select" name="languages[${langIdx}][level]" style="max-width:180px">
-                        <option value="">— Уровень —</option>
-                        <option value="Начальный">Начальный</option>
-                        <option value="Средний">Средний</option>
-                        <option value="Свободный">Свободный</option>
-                    </select>
-                    <button type="button" class="btn btn-sm btn-outline-danger remove-lang" style="flex-shrink:0">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </div>`;
-            $('#languages_container').append(tpl);
-            langIdx++;
-        });
-
-        // ─── Удаление строки языка ───────────────────────────
-        $(document).on('click', '.remove-lang', function () {
-            const rows = $('#languages_container .lang-row');
-            if (rows.length > 1) {
-                $(this).closest('.lang-row').remove();
-            }
-        });
-
-        // ─── Авто категория при загрузке (если old()) ────────
-        const colors = {A:'#7c3aed',B:'#1d4ed8',C:'#065f46',D:'#92400e'};
-        const initCat = $('#position_select').find(':selected').data('category');
-        if (initCat) {
-            $('#category_display').html(
-                `<span class="badge text-white" style="background:${colors[initCat] || '#6b7280'}">Категория ${initCat}</span>`
-            );
-        }
-    });
-    </script>
-    @endpush
+ 
 
 </x-app-layout>
