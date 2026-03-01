@@ -34,6 +34,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            
             <div>
                 <h2 class="h5 fw-semibold mb-1">
                     <i class="bi bi-file-earmark-check me-2"></i>Заявки на согласование
@@ -42,11 +43,15 @@
                     Заявки, требующие вашего решения
                 </p>
             </div>
-            <span class="badge bg-primary rounded-pill" style="font-size:0.9rem; padding:0.5rem 1rem">
-                {{ $statements->count() }} заявок
-            </span>
+           
+            
+                <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Назад
+            </a>
         </div>
+     
     </x-slot>
+    
 
     <div class="container-fluid py-4">
 
@@ -62,6 +67,7 @@
                 <h6 class="mb-0 fw-semibold">
                     <i class="bi bi-list-ul me-2"></i>Все заявки
                 </h6>
+                
             </div>
             <div class="card-body p-0">
                 @if($statements->isEmpty())

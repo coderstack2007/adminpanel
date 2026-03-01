@@ -1,0 +1,6 @@
+[01-Mar-2026 10:13:44 Asia/Tashkent] PHP Warning:  require(/home/resumebo/adminpanel/public/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/resumebo/adminpanel/public/index.php on line 14
+[01-Mar-2026 10:13:44 Asia/Tashkent] PHP Warning:  require(/home/resumebo/adminpanel/public/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/resumebo/adminpanel/public/index.php on line 14
+[01-Mar-2026 10:13:44 Asia/Tashkent] PHP Fatal error:  Uncaught Error: Failed opening required '/home/resumebo/adminpanel/public/../vendor/autoload.php' (include_path='.:/opt/alt/php84/usr/share/pear:/opt/alt/php84/usr/share/php:/usr/share/pear:/usr/share/php') in /home/resumebo/adminpanel/public/index.php:14
+Stack trace:
+#0 {main}
+  thrown in /home/resumebo/adminpanel/public/index.php on line 14

@@ -46,11 +46,11 @@ return [
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
+            'host' => env('DB_HOST', 'localhost'),
             'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'laravel'),
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
+            'database' => env('DB_DATABASE', 'resumebo_adminresumes'),
+            'username' => env('DB_USERNAME', 'resumebo_supervisor'),
+            'password' => env('DB_PASSWORD', 'coder2007#'),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
@@ -65,11 +65,11 @@ return [
 
           'resume_bot' => [
                 'driver'    => 'mysql',
-                'host'      => env('RESUME_BOT_DB_HOST', '127.0.0.1'),
-                'port'      => env('RESUME_BOT_DB_PORT', '8889'),   // MAMP
-                'database'  => env('RESUME_BOT_DB_NAME', 'resume_bot'),
-                'username'  => env('RESUME_BOT_DB_USER', 'root'),
-                'password'  => env('RESUME_BOT_DB_PASS', 'root'),
+                'host'      => env('RESUME_BOT_DB_HOST', 'localhost'),
+                'port'      => env('RESUME_BOT_DB_PORT', '3306'),  
+                'database'  => env('RESUME_BOT_DB_NAME', 'resume_resumes'),
+                'username'  => env('RESUME_BOT_DB_USER', 'resumebo_admin'),
+                'password'  => env('RESUME_BOT_DB_PASS', 'coder2007#'),
                 'charset'   => 'utf8mb4',
                 'collation' => 'utf8mb4_unicode_ci',
                 'prefix'    => '',

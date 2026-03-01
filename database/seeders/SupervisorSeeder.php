@@ -50,6 +50,7 @@ class SupervisorSeeder extends Seeder
                 [
                     'category'  => 'A',
                     'grade'     => 5,
+                    'is_vacant' => false
             
                 ]
             );
@@ -64,6 +65,7 @@ class SupervisorSeeder extends Seeder
                     'department_id'  => $department->id,
                     'subdivision_id' => $subdivision->id,
                     'position_id'    => $position->id,
+           
           
                 ]
             );

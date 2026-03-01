@@ -43,8 +43,8 @@ return new class extends Migration
             $table->foreignId('supervisor_id')->nullable()->after('edited_by')
                   ->constrained('users')->nullOnDelete();
             $table->text('supervisor_comment')->nullable()->after('supervisor_id');
-            $table->timestamp('ed_at')->nullable()->after('supervisor_comment');
-            $table->timestamp('sent_to_supervisor_at')->nullable()->after('ed_at');
+        $table->timestamp('supervisor_reviewed_at')->nullable()->after('supervisor_comment');
+            $table->timestamp('sent_to_supervisor_at')->nullable()->after('supervisor_reviewed_at');
         });
     }
 

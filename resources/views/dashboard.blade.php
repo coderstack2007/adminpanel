@@ -46,7 +46,7 @@
                         </a>
                     </div>
                     <div class="col-md-6">
-                        <a href="{{ route('hr.statements.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
+                        <a href="{{ route('supervisor.statements.index') }}" class="card border-0 shadow-sm text-decoration-none h-100">
                             <div class="card-body text-center py-4">
                                 <i class="bi bi-files fs-1 text-info"></i>
                                 <p class="mt-2 mb-0 fw-semibold">Все заявки</p>

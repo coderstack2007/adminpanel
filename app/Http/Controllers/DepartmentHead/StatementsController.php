@@ -32,7 +32,6 @@ class StatementsController extends Controller
 
         // Только вакантные должности своего подразделения
         $vacantPositions = Position::where('subdivision_id', $user->subdivision_id)
-            ->where('is_vacant', true)
             ->get();
 
         $allPositions = Position::where('subdivision_id', $user->subdivision_id)->get();
@@ -104,8 +103,8 @@ class StatementsController extends Controller
     public function edit(VacancyRequest $statement)
     {
         // Только заявитель может редактировать черновик
-        if ($statement->requester_id !== auth()->id() || !$statement->isDraft()) {
-            abort(403);
+        if ((int) $statement->requester_id !== (int) auth()->id() || !$statement->isDraft()) {
+        abort(403);
         }
 
         $user = auth()->user()->load(['branch', 'department', 'subdivision', 'position']);
@@ -121,7 +120,7 @@ class StatementsController extends Controller
 
     public function update(Request $request, VacancyRequest $statement)
     {
-        if ($statement->requester_id !== auth()->id() || !$statement->isDraft()) {
+        if ((int) $statement->requester_id !== (int) auth()->id() || !$statement->isDraft()) {
             abort(403);
         }
 
@@ -175,9 +174,9 @@ class StatementsController extends Controller
      */
     public function submit(VacancyRequest $statement)
     {
-        if ($statement->requester_id !== auth()->id() || !$statement->isDraft()) {
-            abort(403);
-        }
+        if ((int) $statement->requester_id !== (int) auth()->id() || !$statement->isDraft()) {
+        abort(403);
+    }
 
         $state = \App\Models\State::byKey('submitted');
 
@@ -209,7 +208,7 @@ class StatementsController extends Controller
      */
     public function confirmClose(VacancyRequest $statement)
     {
-        if ($statement->requester_id !== auth()->id() || !$statement->isClosed()) {
+        if ((int) $statement->requester_id !== (int) auth()->id() || !$statement->isClosed()) {
             abort(403);
         }
 

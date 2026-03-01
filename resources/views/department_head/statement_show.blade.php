@@ -146,7 +146,7 @@
 
         @php
             $isHr         = auth()->user()->hasAnyRole(['hr_manager', 'super_admin']);
-            $isRequester  = $statement->requester_id === auth()->id();
+            $isRequester  = (int) $statement->requester_id === (int) auth()->id();
             // HR может редактировать если submitted или hr_reviewed
             $hrCanEdit    = $isHr && in_array($statement->status, ['submitted', 'hr_reviewed']);
             // Заказчик может редактировать только черновик
