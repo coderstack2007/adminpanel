@@ -1,10 +1,13 @@
 FROM php:8.4-fpm-alpine
 
-# Install system dependencies
+# ── Системные зависимости ─────────────────────────────────────────────────────
 RUN apk add --no-cache \
     bash \
     curl \
     git \
+    autoconf \
+    make \
+    g++ \
     libpng-dev \
     libjpeg-turbo-dev \
     libwebp-dev \
@@ -16,7 +19,7 @@ RUN apk add --no-cache \
     npm \
     supervisor
 
-# Install PHP extensions
+# ── PHP-расширения ────────────────────────────────────────────────────────────
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install \
         pdo \
@@ -30,30 +33,42 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         intl \
         opcache
 
-# Install Redis extension
+# ── Redis extension ───────────────────────────────────────────────────────────
 RUN pecl install redis && docker-php-ext-enable redis
 
-# Install Composer
+# ── Composer ──────────────────────────────────────────────────────────────────
 COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy application files
+# ── PHP-зависимости (слой кэшируется если composer.json не менялся) ───────────
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
+# ── Node-зависимости (слой кэшируется если package.json не менялся) ──────────
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# ── Копируем остальные файлы приложения ───────────────────────────────────────
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# ── Финальная сборка Composer (post-install scripts) ─────────────────────────
+RUN composer run-script post-autoload-dump --no-interaction 2>/dev/null || true
 
-# Install Node dependencies and build assets
-RUN npm ci && npm run build
+# ── Сборка фронтенда ──────────────────────────────────────────────────────────
+RUN npm run build
 
-# Set permissions
+# ── Права доступа ─────────────────────────────────────────────────────────────
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
+
+# ── Entrypoint ────────────────────────────────────────────────────────────────
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 USER www-data
 
 EXPOSE 9000
 
-CMD ["php-fpm"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
