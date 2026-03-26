@@ -22,7 +22,6 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-
         $request->session()->regenerate();
 
         // Обновляем время последнего входа
@@ -43,12 +42,12 @@ class AuthenticatedSessionController extends Controller
 
     private function redirectTo($user): string
     {
-        return match(true) {
-            $user->hasRole('super_admin')     => route('dashboard'),
-            $user->hasRole('hr_manager')      => route('dashboard'),
-            $user->hasRole('employee')       => route('dashboard'),
+        return match (true) {
+            $user->hasRole('super_admin') => route('dashboard'),
+            $user->hasRole('hr_manager') => route('dashboard'),
+            $user->hasRole('employee') => route('dashboard'),
             $user->hasRole('department_head') => route('dashboard'),
-            default                           => route('dashboard'),
+            default => route('dashboard'),
         };
     }
 }

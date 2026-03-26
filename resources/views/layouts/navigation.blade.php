@@ -25,12 +25,7 @@
             </button>
             <ul class="dropdown-menu dropdown-menu-end"
                 style="background-color: rgb(31,41,55); border: 1px solid rgb(55,65,81);">
-                <li>
-                    <a class="dropdown-item" href="{{ route('profile.edit') }}"
-                       style="color: #e5e7eb;">
-                        <i class="bi bi-person me-2"></i>Profile
-                    </a>
-                </li>
+               
                 <li><hr class="dropdown-divider" style="border-color: rgb(55,65,81);"></li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">

@@ -1,4 +1,5 @@
 <?php
+
 // ═══════════════════════════════════════════════════════════════
 // app/Services/NotificationService.php
 // Адаптирован под твои роли: hr_manager, super_admin
@@ -7,8 +8,8 @@
 namespace App\Services;
 
 use App\Models\Notification;
-use App\Models\VacancyRequest;
 use App\Models\User;
+use App\Models\VacancyRequest;
 
 class NotificationService
 {
@@ -17,10 +18,10 @@ class NotificationService
         $userId = $user instanceof User ? $user->id : $user;
 
         Notification::create([
-            'user_id'            => $userId,
+            'user_id' => $userId,
             'vacancy_request_id' => $request->id,
-            'type'               => $type,
-            'message'            => $message,
+            'type' => $type,
+            'message' => $message,
         ]);
     }
 
@@ -76,9 +77,9 @@ class NotificationService
         $labels = [
             'approved' => 'одобрена ✅',
             'rejected' => 'отклонена ❌',
-            'on_hold'  => 'приостановлена ⏸',
+            'on_hold' => 'приостановлена ⏸',
         ];
-        $label        = $labels[$decision] ?? $decision;
+        $label = $labels[$decision] ?? $decision;
         $positionName = $request->position?->name ?? 'должность';
         $supervisorName = auth()->user()?->name ?? 'Руководитель';
 

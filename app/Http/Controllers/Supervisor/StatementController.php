@@ -1,4 +1,5 @@
 <?php
+
 // ═══════════════════════════════════════════════════════════════
 // app/Http/Controllers/Supervisor/StatementController.php
 // ВАЖНО: supervisor = super_admin в твоей системе.
@@ -10,6 +11,7 @@
 namespace App\Http\Controllers\Supervisor;
 
 use App\Http\Controllers\Controller;
+use App\Models\State;
 use App\Models\VacancyRequest;
 use App\Models\VacancyRequestLog;
 use App\Services\NotificationService;
@@ -111,7 +113,7 @@ class StatementController extends Controller
 
     private function authorizeDecision(VacancyRequest $statement): void
     {
-        if (!$statement->isSupervisorReview()) {
+        if (! $statement->isSupervisorReview()) {
             abort(403, 'Заявка не находится на стадии согласования.');
         }
     }
@@ -123,14 +125,14 @@ class StatementController extends Controller
         string $logComment,
         $approvedAt = null
     ): void {
-        $state = \App\Models\State::byKey($newStatus);
+        $state = State::byKey($newStatus);
 
         DB::transaction(function () use ($statement, $newStatus, $comment, $logComment, $state, $approvedAt) {
             $updateData = [
-                'status'                 => $newStatus,
-                'state_id'               => $state?->id,
-                'supervisor_id'          => auth()->id(), // фиксируем кто принял решение
-                'supervisor_comment'     => $comment,
+                'status' => $newStatus,
+                'state_id' => $state?->id,
+                'supervisor_id' => auth()->id(), // фиксируем кто принял решение
+                'supervisor_comment' => $comment,
                 'supervisor_reviewed_at' => now(),
             ];
 
@@ -142,9 +144,9 @@ class StatementController extends Controller
 
             VacancyRequestLog::create([
                 'vacancy_request_id' => $statement->id,
-                'user_id'            => auth()->id(),
-                'status'             => $newStatus,
-                'comment'            => $logComment . ($comment ? ": {$comment}" : ''),
+                'user_id' => auth()->id(),
+                'status' => $newStatus,
+                'comment' => $logComment.($comment ? ": {$comment}" : ''),
             ]);
 
             // Уведомить HR и заявителя

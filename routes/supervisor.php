@@ -1,13 +1,14 @@
 <?php
+
 // ═══════════════════════════════════════════════════════════════
 // 3. routes/supervisor.php  — ЗАМЕНИТЬ ПОЛНОСТЬЮ
 // ═══════════════════════════════════════════════════════════════
 
 use App\Http\Controllers\Supervisor\BranchController;
 use App\Http\Controllers\Supervisor\DepartmentController;
-use App\Http\Controllers\Supervisor\SubdivisionController;
 use App\Http\Controllers\Supervisor\PositionController;
 use App\Http\Controllers\Supervisor\StatementController;
+use App\Http\Controllers\Supervisor\SubdivisionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('supervisor')
@@ -15,7 +16,7 @@ Route::prefix('supervisor')
     ->middleware(['auth', 'super_admin_only'])
     ->group(function () {
 
-        Route::get('/dashboard', fn() => view('supervisor.dashboard'))
+        Route::get('/dashboard', fn () => view('supervisor.dashboard'))
             ->name('dashboard');
 
         // ── Структура компании ────────────────────────────────

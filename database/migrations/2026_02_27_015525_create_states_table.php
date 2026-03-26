@@ -33,17 +33,17 @@ return new class extends Migration
         Schema::table('vacancy_requests', function (Blueprint $table) {
             // Связь с таблицей states
             $table->foreignId('state_id')->nullable()->after('status')
-                  ->constrained('states')->nullOnDelete();
+                ->constrained('states')->nullOnDelete();
 
             // Кто последний редактировал (HR)
             $table->foreignId('edited_by')->nullable()->after('hr_editor_id')
-                  ->constrained('users')->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
 
             // Supervisor поля
             $table->foreignId('supervisor_id')->nullable()->after('edited_by')
-                  ->constrained('users')->nullOnDelete();
+                ->constrained('users')->nullOnDelete();
             $table->text('supervisor_comment')->nullable()->after('supervisor_id');
-        $table->timestamp('supervisor_reviewed_at')->nullable()->after('supervisor_comment');
+            $table->timestamp('supervisor_reviewed_at')->nullable()->after('supervisor_comment');
             $table->timestamp('sent_to_supervisor_at')->nullable()->after('supervisor_reviewed_at');
         });
     }

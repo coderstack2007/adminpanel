@@ -20,6 +20,7 @@ class HrSubdivisionController extends Controller
 
         return view('hr.subdivisions', compact('department', 'subdivisions'));
     }
+
     public function employeeView(Request $request)
     {
         $user = $request->user();
@@ -32,18 +33,18 @@ class HrSubdivisionController extends Controller
             'position',
         ]);
 
-        if (!$user->subdivision_id) {
+        if (! $user->subdivision_id) {
             return view('employee.subdivision', [
-                'user'        => $user,
+                'user' => $user,
                 'subdivision' => null,
-                'positions'   => collect(),
+                'positions' => collect(),
             ]);
         }
 
         return view('employee.subdivision', [
-            'user'        => $user,
+            'user' => $user,
             'subdivision' => $user->subdivision,
-            'positions'   => $user->subdivision->positions,
+            'positions' => $user->subdivision->positions,
         ]);
     }
 }

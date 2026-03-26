@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -59,7 +59,7 @@ return new class extends Migration
             $table->json('languages')->nullable();              // [{"lang":"ru","level":"advanced"}]
             $table->text('specialized_knowledge')->nullable();  // Специализированные знания
             $table->text('job_responsibilities')->nullable();   // Должностные обязанности
-            $table->text('additional_requirements')->nullable();// Доп. требования
+            $table->text('additional_requirements')->nullable(); // Доп. требования
 
             // ─── Статус и согласование ────────────────────────
             $table->enum('status', [
@@ -71,7 +71,7 @@ return new class extends Migration
                 'on_hold',         // Приостановлена
                 'searching',       // Поиск начат
                 'closed',          // HR закрыл
-                'confirmed_closed',// Заказчик подтвердил закрытие
+                'confirmed_closed', // Заказчик подтвердил закрытие
             ])->default('draft');
 
             $table->foreignId('hr_editor_id')->nullable()->constrained('users')->nullOnDelete();
@@ -92,8 +92,6 @@ return new class extends Migration
             $table->text('comment')->nullable();
             $table->timestamps();
         });
-
-
 
         DB::statement("
         ALTER TABLE vacancy_requests 

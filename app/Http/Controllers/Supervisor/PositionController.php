@@ -30,19 +30,19 @@ class PositionController extends Controller
     public function store(Request $request, Subdivision $subdivision)
     {
         $rules = [
-            'name'      => 'required|string|max:255',
-            'category'  => 'required|in:A,B,C,D',
-            'grade'     => 'required|integer|min:1|max:5',
+            'name' => 'required|string|max:255',
+            'category' => 'required|in:A,B,C,D',
+            'grade' => 'required|integer|min:1|max:5',
             'user_name' => 'nullable|string|max:255',
-            'email'     => 'nullable|email|unique:users,email',
-            'password'  => 'nullable|string|min:4',
-            'role'      => 'nullable|exists:roles,name',
+            'email' => 'nullable|email|unique:users,email',
+            'password' => 'nullable|string|min:4',
+            'role' => 'nullable|exists:roles,name',
         ];
 
         if ($request->filled('email')) {
             $rules['user_name'] = 'required|string|max:255';
-            $rules['password']  = 'required|string|min:4';
-            $rules['role']      = 'required|exists:roles,name';
+            $rules['password'] = 'required|string|min:4';
+            $rules['role'] = 'required|exists:roles,name';
         }
 
         $validated = $request->validate($rules);
@@ -52,24 +52,24 @@ class PositionController extends Controller
 
             // Должность вакантна если сотрудник не создаётся сразу
             $position = $subdivision->positions()->create([
-                'name'      => $validated['name'],
-                'category'  => $validated['category'],
-                'grade'     => $validated['grade'],
-                'is_vacant' => !$withUser,  // ← сразу правильное значение
+                'name' => $validated['name'],
+                'category' => $validated['category'],
+                'grade' => $validated['grade'],
+                'is_vacant' => ! $withUser,  // ← сразу правильное значение
             ]);
 
             if ($withUser) {
                 $subdivision->load('department.branch');
 
                 $user = User::create([
-                    'name'           => $validated['user_name'],
-                    'email'          => $validated['email'],
-                    'password'       => Hash::make($validated['password']),
-                    'employee_code'  => $this->generateUniqueCode(),
-                    'position_id'    => $position->id,
+                    'name' => $validated['user_name'],
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                    'employee_code' => $this->generateUniqueCode(),
+                    'position_id' => $position->id,
                     'subdivision_id' => $subdivision->id,
-                    'department_id'  => $subdivision->department_id,
-                    'branch_id'      => $subdivision->department->branch_id,
+                    'department_id' => $subdivision->department_id,
+                    'branch_id' => $subdivision->department->branch_id,
                 ]);
 
                 $user->assignRole($validated['role']);
@@ -117,8 +117,8 @@ class PositionController extends Controller
     {
         do {
             $letters = strtoupper(substr(str_shuffle('ABCDEFGHJKLMNPQRSTUVWXYZ'), 0, 3));
-            $digits  = str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT);
-            $code    = "EMP-{$letters}{$digits}";
+            $digits = str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT);
+            $code = "EMP-{$letters}{$digits}";
         } while (User::where('employee_code', $code)->exists());
 
         return $code;

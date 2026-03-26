@@ -1,15 +1,16 @@
 <?php
+
 // ═══════════════════════════════════════════════════════════════
 // 4. routes/web.php  — ЗАМЕНИТЬ ПОЛНОСТЬЮ
 // ═══════════════════════════════════════════════════════════════
 
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn() => redirect()->route('login'));
+Route::get('/', fn () => redirect()->route('login'));
 
-Route::get('/dashboard', fn() => view('dashboard'))
+Route::get('/dashboard', fn () => view('dashboard'))
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Str;
+use Pdo\Mysql;
 
 return [
 
@@ -59,22 +60,22 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
-          'resume_bot' => [
-                'driver'    => 'mysql',
-                'host'      => env('RESUME_BOT_DB_HOST', 'localhost'),
-                'port'      => env('RESUME_BOT_DB_PORT', '3306'),  
-                'database'  => env('RESUME_BOT_DB_NAME', 'resume_resumes'),
-                'username'  => env('RESUME_BOT_DB_USER', 'resumebo_admin'),
-                'password'  => env('RESUME_BOT_DB_PASS', 'coder2007#'),
-                'charset'   => 'utf8mb4',
-                'collation' => 'utf8mb4_unicode_ci',
-                'prefix'    => '',
-                'strict'    => false,
-                'engine'    => null,
+        'resume_bot' => [
+            'driver' => 'mysql',
+            'host' => env('RESUME_BOT_DB_HOST', 'localhost'),
+            'port' => env('RESUME_BOT_DB_PORT', '3306'),
+            'database' => env('RESUME_BOT_DB_NAME', 'resume_resumes'),
+            'username' => env('RESUME_BOT_DB_USER', 'resumebo_admin'),
+            'password' => env('RESUME_BOT_DB_PASS', 'coder2007#'),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => false,
+            'engine' => null,
         ],
 
         'mariadb' => [
@@ -93,7 +94,7 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
@@ -127,9 +128,6 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
-
-
-        
     ],
 
     /*
@@ -194,7 +192,6 @@ return [
             'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
             'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
         ],
-      
 
     ],
 

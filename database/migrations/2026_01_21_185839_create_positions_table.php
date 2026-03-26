@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum('category', ['A', 'B', 'C', 'D']);
             $table->tinyInteger('grade')->default(1);
             $table->boolean('is_vacant')->default(true);
-    
+
             $table->timestamps();
         });
     }

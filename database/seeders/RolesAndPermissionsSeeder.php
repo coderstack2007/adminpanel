@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
@@ -21,7 +21,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'vacancy_request.close',    'vacancy_request.confirm_close',
             'vacancy_request.manage',
             'position.view',   'position.manage',
-            'subdivision.view','subdivision.manage',
+            'subdivision.view', 'subdivision.manage',
             'department.view', 'department.manage',
             'branch.view',     'branch.manage',
         ];
@@ -44,7 +44,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'department.view', 'department.manage', 'branch.view',
         ]);
 
-      
         // department_head
         $deptHead = Role::firstOrCreate(['name' => 'department_head']);
         $deptHead->syncPermissions([

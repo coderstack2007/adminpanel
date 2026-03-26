@@ -1,11 +1,12 @@
 <?php
+
 // ═══════════════════════════════════════════════════════════════
 // 2. routes/hr.php  — ЗАМЕНИТЬ ПОЛНОСТЬЮ
 // ═══════════════════════════════════════════════════════════════
 
 use App\Http\Controllers\HR\HrDepartmentController;
-use App\Http\Controllers\HR\HrSubdivisionController;
 use App\Http\Controllers\HR\HrStatementController;
+use App\Http\Controllers\HR\HrSubdivisionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('hr')
@@ -13,7 +14,7 @@ Route::prefix('hr')
     ->middleware(['auth', 'role:hr_manager|super_admin'])
     ->group(function () {
 
-        Route::get('/', fn() => redirect()->route('hr.departments.index'))->name('dashboard');
+        Route::get('/', fn () => redirect()->route('hr.departments.index'))->name('dashboard');
 
         // Структура
         Route::get('/departments', [HrDepartmentController::class, 'index'])
@@ -35,10 +36,10 @@ Route::prefix('hr')
         Route::post('/statements/{statement}/send-supervisor', [HrStatementController::class, 'sendToSupervisor'])
             ->name('statements.send-supervisor');
 
-            // Удаление вакансии
+        // Удаление вакансии
         Route::delete('/statements/{statement}', [HrStatementController::class, 'deleteVacancy'])
             ->name('statements.delete');
-        
+
         // Удаление резюме
         Route::delete('/resumes/{resumeId}', [HrStatementController::class, 'deleteResume'])
             ->name('resumes.delete');

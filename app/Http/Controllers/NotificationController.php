@@ -20,7 +20,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'notifications' => $notifications,
-            'unread_count'  => $notifications->whereNull('read_at')->count(),
+            'unread_count' => $notifications->whereNull('read_at')->count(),
         ]);
     }
 

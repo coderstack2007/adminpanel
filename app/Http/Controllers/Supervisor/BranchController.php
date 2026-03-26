@@ -8,8 +8,6 @@ use Illuminate\Http\Request;
 
 class BranchController extends Controller
 {
-
-   
     public function index()
     {
         $branches = Branch::withCount('departments')
@@ -22,8 +20,8 @@ class BranchController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'    => 'required|string|max:255',
-            'code'    => 'required|string|max:50|unique:branches,code',
+            'name' => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:branches,code',
             'address' => 'nullable|string|max:500',
         ]);
 
